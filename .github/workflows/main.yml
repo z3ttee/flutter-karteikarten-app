@@ -10,16 +10,21 @@ on:
 jobs:
   check-tag:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.checkTag.outputs.new_tag }}
     steps:
     - uses: actions/checkout@v3
       with:
         ref: ${{ github.sha }}
         fetch-depth: '0'
     - name: Bump version and push tag
+      id: checkTag
       uses: anothrNick/github-tag-action@1.61.0
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         WITH_V: true
+    - name: Print created tag
+      run: "echo ${{ steps.checkTag.outputs.new_tag }}"
         
   build-apk:
     runs-on: ubuntu-latest
@@ -64,7 +69,10 @@ jobs:
     
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs:
+    - check-tag
     - build-apk
     - build-windows
     steps:
@@ -74,4 +82,14 @@ jobs:
       uses: actions/download-artifact@v3
     - name: Output downloaded files
       run: ls -R
-    
+    - name: Create Release
+      id: createRelease
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "*.apk"
+        tag: ${{ needs.check-tag.outputs.tag }}
+        name: CI/CD Automatic Release ${{ needs.check-tag.outputs.tag }}
+        generateReleaseNotes: true
+    - name: Output Created Release ID
+      run: "echo Created release with id ${{ steps.createRelease.outputs.id }}"
+      
