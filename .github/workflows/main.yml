@@ -67,7 +67,7 @@ jobs:
       id: createRelease
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "artifacts/*.apk"
+        artifacts: "artifacts/**/*.apk"
         tag: ${{ needs.check-tag.outputs.tag }}
         name: CI/CD Automatic Release ${{ needs.check-tag.outputs.tag }}
         generateReleaseNotes: true
