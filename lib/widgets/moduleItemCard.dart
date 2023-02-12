@@ -64,7 +64,7 @@ class ModuleItemCard extends StatelessWidget {
             Row(
               children: [
                 Chip(
-                  label: const Text("0 Karten  •  0% erfolgreich"),
+                  label: const Text("0 Karten  •  0%"),
                   side: const BorderSide(color: Colors.transparent),
                   labelStyle: Theme.of(context).textTheme.labelMedium?.merge(TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(130),
@@ -80,7 +80,7 @@ class ModuleItemCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Padding(padding: const EdgeInsets.only(left: 8), child: IconButton(
+                        Padding(padding: const EdgeInsets.only(left: 4), child: IconButton(
                           icon: const Icon(Icons.alarm),
                           onPressed: () {},
                           style: IconButton.styleFrom(
@@ -92,7 +92,7 @@ class ModuleItemCard extends StatelessWidget {
                             highlightColor: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.12),
                           ),
                         ),),
-                        Padding(padding: const EdgeInsets.only(left: 8), child: IconButton(
+                        Padding(padding: const EdgeInsets.only(left: 4), child: IconButton(
                           icon: const Icon(Icons.edit),
                           onPressed: () {},
                           style: IconButton.styleFrom(
