@@ -21,3 +21,27 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         WITH_V: true
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Execute Flutter Build
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    - run: flutter pub get
+    - run: flutter build apk
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Execute Flutter Build
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    - run: flutter pub get
+    - run: flutter config --enable-windows-desktop
+    - run: flutter build windows
+    
