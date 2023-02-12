@@ -15,14 +15,16 @@ jobs:
       with:
         ref: ${{ github.sha }}
         fetch-depth: '0'
-
     - name: Bump version and push tag
       uses: anothrNick/github-tag-action@1.61.0
       env:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         WITH_V: true
+        
   build-apk:
     runs-on: ubuntu-latest
+    needs:
+    - check-tag
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -33,17 +35,43 @@ jobs:
         cache: true
     - run: flutter pub get
     - run: flutter build apk
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-apk
+        path:  build/app/outputs/flutter-apk/*.apk
+        
   build-windows:
     runs-on: windows-latest
+    needs:
+    - check-tag
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-    - name: Execute Flutter Build
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-        cache: true
-    - run: flutter pub get
-    - run: flutter config --enable-windows-desktop
-    - run: flutter build windows
+#     - name: Execute Flutter Build
+#       uses: subosito/flutter-action@v2
+#       with:
+#         channel: 'stable'
+#         cache: true
+#     - run: flutter pub get
+#     - run: flutter config --enable-windows-desktop
+#     - run: flutter build windows
+#     - name: Upload artifact
+#       uses: actions/upload-artifact@v3
+#       with:
+#         name: release-windows
+#         path: build/app/outputs/bundle/release/*.aab
+    
+  create-release:
+    runs-on: ubuntu-latest
+    needs:
+    - build-apk
+    - build-windows
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+    - name: Output downloaded files
+      run: ls -R
     
