@@ -61,7 +61,7 @@ jobs:
       with:
         path: ./artifacts
     - name: Output downloaded files
-      run: ls -la
+      run: ls -R
       working-directory: ./artifacts
     - name: Create Release
       id: createRelease
