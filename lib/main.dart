@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         // Material Design 3 verwenden
         useMaterial3: true,
-        colorSchemeSeed: Colors.deepOrange,
+        colorSchemeSeed: Colors.purple,
         // Use Material Design 3 typography settings
         typography: Typography.material2021(),
       ),
