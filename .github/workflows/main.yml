@@ -7,7 +7,27 @@ on:
     branches:
       - release
 
-jobs:
+jobs:        
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Execute Flutter Build
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        cache: true
+    - run: flutter pub get
+    - run: flutter pub global activate split_icon
+    - run: flutter pub global run split_icon
+    - run: flutter build apk --release
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-android
+        path:  build/app/outputs/flutter-apk/app-release.apk
+        
   check-tag:
     runs-on: ubuntu-latest
     outputs:
@@ -25,26 +45,6 @@ jobs:
         WITH_V: true
     - name: Print created tag
       run: "echo ${{ steps.checkTag.outputs.new_tag }}"
-        
-  build-apk:
-    runs-on: ubuntu-latest
-    needs:
-    - check-tag
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-    - name: Execute Flutter Build
-      uses: subosito/flutter-action@v2
-      with:
-        channel: 'stable'
-        cache: true
-    - run: flutter pub get
-    - run: flutter build apk
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: release-android
-        path:  build/app/outputs/flutter-apk/app-release.apk
     
   create-release:
     runs-on: ubuntu-latest
