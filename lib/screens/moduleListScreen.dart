@@ -2,11 +2,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/widgets/moduleItemCard.dart';
 
+import '../entities/Module.dart';
+import '../entities/StorageManger.dart';
+
 class ModuleListScreen extends StatelessWidget {
   const ModuleListScreen({super.key});
 
   Future<List<dynamic>> _fetchListItems() async {
-    return Future.delayed(const Duration(milliseconds: 500), () {
+    return Future.delayed(const Duration(milliseconds: 1), () async {
+      StorageManager test = StorageManager();
+      Module tModule = Module("test", "beschreibung", 1);
+      print("start");
+      try {
+       // await test.writeModule(tModule.toString());
+        print("object");
+      } catch (e) {
+        print(e);
+        // If encountering an error, return 0
+      }
+
+     // await test.writeModule(tModule.toString());
+      print("object");
+      //await test.readLastModuelId();
+
       return [];
     });
   }
