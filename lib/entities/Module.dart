@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 class Module{
 
   String name = "";
-  String description = "";
+  String? description = "";
   String id = "";
   Map<String,Card> cards = {};
 
@@ -20,12 +20,12 @@ class Module{
 
 
   Module(this.name, this.description){
-    var uuid = Uuid();
+    var uuid = const Uuid();
     id = uuid.v1();
 
   }
 
-  toJson(){
+  String toJson() {
     return jsonEncode( {
       "name" : name,
       "description" : description,

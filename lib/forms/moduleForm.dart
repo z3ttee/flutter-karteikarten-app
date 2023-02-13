@@ -59,6 +59,8 @@ class _ModuleFormState extends State<ModuleForm> {
               },
             )
           ),
+          // Add some space between form fields
+          const SizedBox(height: 12,),
           // TextFormField for module description
           TextFormField(
             decoration: const InputDecoration(

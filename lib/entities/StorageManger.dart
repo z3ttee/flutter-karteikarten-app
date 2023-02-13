@@ -11,7 +11,7 @@ class StorageManager{
   //https://docs.flutter.dev/cookbook/persistence/reading-writing-files
   StorageManager();
 
-  void saveAll(Module module) async{
+  Future<void> saveAll(Module module) async {
     print(module.id.toString());
     final prefs = await SharedPreferences.getInstance();
 
