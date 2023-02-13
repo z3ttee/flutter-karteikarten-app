@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/dialogs/moduleEditorDialog.dart';
 import 'package:flutter_karteikarten_app/widgets/moduleItemCard.dart';
 
 class ModuleListScreen extends StatelessWidget {
@@ -7,17 +8,32 @@ class ModuleListScreen extends StatelessWidget {
 
   Future<Map<String,Module>> _fetchListItems() async {
     return Future.delayed(const Duration(milliseconds: 1), () async {
+<<<<<<< HEAD
       StorageManager test = StorageManager();
    
 
       return test.getDummyModules(5);
+=======
+      return [];
+>>>>>>> 4222937b98b5d15fe31a09a22e2653d1848a0524
     });
+  }
+
+  _openModuleEditor(BuildContext ctx) {
+    print("Opening module editor");
+    showDialog(
+      context: ctx,
+      builder: (context) {
+        return const ModuleEditorDialog();
+      }
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
+        onPressed: () => _openModuleEditor(context),
         child: const Icon(Icons.add)
       ),
       body: FutureBuilder(
@@ -38,6 +54,7 @@ class ModuleListScreen extends StatelessWidget {
                     SliverList(delegate: SliverChildBuilderDelegate((context, index) {
                         int maxIndex = (snapshot.data?.length ?? 1) - 1;
                         return Padding(
+                          padding: EdgeInsets.only(left: 12, right: 12, top: (index == 0) ? 12 : 0, bottom: (index == maxIndex) ? 96 : 0),
                           child: ModuleItemCard(
                             name: "Modul #${index + 1}",
                             filled: true,
@@ -69,7 +86,6 @@ class ModuleListScreen extends StatelessWidget {
                             left: 12,
                             right: 12,
                             top: (index != 0) ? 0 : 12,
-                            bottom: (index != maxIndex) ? 0 : 12
                             bottom: (index != maxIndex) ? 0 : 96
                         ),
                         child: ModuleItemCard(
