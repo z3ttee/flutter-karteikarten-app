@@ -47,8 +47,9 @@ class ErrorCard extends StatelessWidget {
             // Actions section outside the card
             Padding(
               padding: EdgeInsets.all((actions?.length ?? 0) > 0 ? 8 : 0),
-              child: Row(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   ...?actions
                 ],

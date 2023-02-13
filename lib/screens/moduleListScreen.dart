@@ -1,15 +1,15 @@
 
+import 'dart:html';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_font_icons/flutter_font_icons.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/dialogs/moduleEditorDialog.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
-import 'package:flutter_karteikarten_app/widgets/dotDivider.dart';
 import 'package:flutter_karteikarten_app/widgets/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/moduleItemCard.dart';
 import '../entities/Module.dart';
-import 'dart:html';
 
 class ModuleListScreen extends StatefulWidget {
   const ModuleListScreen({super.key});
@@ -68,6 +68,15 @@ class _ModuleListState extends State<ModuleListScreen> {
     });
   }
 
+  _reloadModulesSilent() {
+    var future = _fetchModulesAsList();
+    future.then((value){
+      setState(() {
+        _modules = future;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,7 +88,7 @@ class _ModuleListState extends State<ModuleListScreen> {
           future: _modules,
           builder: (context, snapshot) {
             // Check if future is still fetching modules
-            if (snapshot.connectionState != ConnectionState.done) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
               // If not done yet, show progress bar (circular) to
               // indicate loading
               return const Center(child: CircularProgressIndicator());
@@ -150,7 +159,7 @@ class _ModuleListState extends State<ModuleListScreen> {
         message: "Leg' ein neues Modul an, um deine Karteikarten zu organisieren. Sobald du ein Modul erstellt hast, wird es hier angezeigt.",
         actions: [
           renderRetryAction(),
-          const DotDivider(),
+          const SizedBox(height: 4,),
           TextButton.icon(
             onPressed: () => _openModuleEditor(context),
             label: const Text("Erstes Modul anlegen"),
