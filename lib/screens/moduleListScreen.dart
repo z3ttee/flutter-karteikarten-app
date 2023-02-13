@@ -1,5 +1,5 @@
 
-import 'dart:html';
+import "package:universal_html/html.dart" as html;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -112,7 +112,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
                   actions: <Widget>[
                     IconButton(onPressed: () {}, icon: const Icon(Icons.help)),
-                    kIsWeb ? Padding(padding: const EdgeInsets.only(right: 12), child: IconButton(onPressed: () => window.open(Constants.repoUrl, "GitHub Repository"), icon: const Icon(Octicons.mark_github)),) : Container(),
+                    kIsWeb ? Padding(padding: const EdgeInsets.only(right: 12), child: IconButton(onPressed: () => html.window.open(Constants.repoUrl, "GitHub Repository"), icon: const Icon(Octicons.mark_github)),) : Container(),
                   ],
                 ),
                 // Render list if list is not empty. Otherwise render placeholder

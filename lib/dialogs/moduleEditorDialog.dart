@@ -1,6 +1,4 @@
 
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
