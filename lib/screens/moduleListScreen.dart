@@ -2,9 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/widgets/moduleItemCard.dart';
 
-import '../entities/Module.dart';
-import '../entities/StorageManger.dart';
-
 class ModuleListScreen extends StatelessWidget {
   const ModuleListScreen({super.key});
 
@@ -21,7 +18,6 @@ class ModuleListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {  },
         child: const Icon(Icons.add)
       ),
       body: FutureBuilder(
@@ -42,7 +38,6 @@ class ModuleListScreen extends StatelessWidget {
                     SliverList(delegate: SliverChildBuilderDelegate((context, index) {
                         int maxIndex = (snapshot.data?.length ?? 1) - 1;
                         return Padding(
-                          padding: EdgeInsets.only(left: 12, right: 12, top: (index == 0) ? 12 : 0, bottom: (index == maxIndex) ? 12 : 0),
                           child: ModuleItemCard(
                             name: "Modul #${index + 1}",
                             filled: true,
@@ -75,6 +70,7 @@ class ModuleListScreen extends StatelessWidget {
                             right: 12,
                             top: (index != 0) ? 0 : 12,
                             bottom: (index != maxIndex) ? 0 : 12
+                            bottom: (index != maxIndex) ? 0 : 96
                         ),
                         child: ModuleItemCard(
                           name: "Modul #${index + 1}",
