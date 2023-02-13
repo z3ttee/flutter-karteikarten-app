@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/widgets/dotDivider.dart';
 
 class ModuleItemCard extends StatelessWidget {
 
@@ -27,8 +28,6 @@ class ModuleItemCard extends StatelessWidget {
     this.filled = false
   });
 
-
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -48,23 +47,37 @@ class ModuleItemCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(name, style: Theme.of(context).textTheme.headlineSmall?.merge(TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w400,
                   letterSpacing: Theme.of(context).textTheme.labelLarge?.letterSpacing,
                   color: Theme.of(context).colorScheme.onSurfaceVariant
                 )),)
               ],
             ),
-            Text(description ?? ""),
+            // Render module description, if there is a description
+            description != null ? Padding(padding: const EdgeInsets.only(top: 2, bottom: 16), child: Text(description!, textAlign: TextAlign.left, style: Theme.of(context).textTheme.bodyMedium?.merge(TextStyle(
+                fontWeight: FontWeight.w400,
+                letterSpacing: Theme.of(context).textTheme.labelLarge?.letterSpacing,
+                color: Theme.of(context).colorScheme.onSurfaceVariant
+            )),),) : Container(),
+            // Render bottom row of card containing stats and actions
             Row(
               children: [
+                // Chip for displaying stats
                 Chip(
-                  label: const Text("0 Karten  •  0%"),
+                  label: Row(
+                    children: [
+                      Text("$cardsCount Karte${(cardsCount != 1 ? 'n' : '')}"),
+                      const DotDivider(),
+                      Text("${((incorrectAnswers) / (cardsCount == 0 ? 1 : cardsCount)).round()} %")
+                    ],
+                  ),
                   side: const BorderSide(color: Colors.transparent),
                   labelStyle: Theme.of(context).textTheme.labelMedium?.merge(TextStyle(
                     color: Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(130),
@@ -75,6 +88,7 @@ class ModuleItemCard extends StatelessWidget {
                   elevation: 0,
                   backgroundColor: Theme.of(context).colorScheme.surface,
                 ),
+                // Row for actions, takes up all remaining width
                 Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,

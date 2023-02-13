@@ -11,8 +11,6 @@ class StorageManager{
   //https://docs.flutter.dev/cookbook/persistence/reading-writing-files
   StorageManager();
 
-
-
   void saveAll(Module module) async{
     print(module.id.toString());
     final prefs = await SharedPreferences.getInstance();
@@ -48,14 +46,15 @@ class StorageManager{
     return x;
   }
 
-  Map<String,Module> getDummyModules(int y ){
+  Future<Map<String,Module>> getDummyModules(int y ){
     Map<String,Module> x = {};
     for(int i = 0; i < y; i++){
       Module zzz = Module("name $i", "description $i");
       x[zzz.id] = zzz;
     }
-    return x;
+    return Future.value(x);
   }
+
   void Jsono(){
     Map<String,Module> json = getDummy(5);
     //print(json);

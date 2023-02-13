@@ -1,109 +1,165 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/dialogs/moduleEditorDialog.dart';
+import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
+import 'package:flutter_karteikarten_app/widgets/dotDivider.dart';
+import 'package:flutter_karteikarten_app/widgets/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/moduleItemCard.dart';
+import '../entities/Module.dart';
 
-class ModuleListScreen extends StatelessWidget {
+class ModuleListScreen extends StatefulWidget {
   const ModuleListScreen({super.key});
 
-  Future<Map<String,Module>> _fetchListItems() async {
-    return Future.delayed(const Duration(milliseconds: 1), () async {
-<<<<<<< HEAD
-      StorageManager test = StorageManager();
-   
+  @override
+  State<StatefulWidget> createState() {
+    return _ModuleListState();
+  }
 
-      return test.getDummyModules(5);
-=======
-      return [];
->>>>>>> 4222937b98b5d15fe31a09a22e2653d1848a0524
+}
+
+class _ModuleListState extends State<ModuleListScreen> {
+
+  // Create variable of type Future to not re-fetch all modules
+  // when UI is rerendered
+  late Future<List<Module>> _modules;
+
+  Future<Map<String, Module>> _fetchModules() {
+    StorageManager test = StorageManager();
+    return test.getDummyModules(0);
+  }
+
+  Future<List<Module>> _fetchModulesAsList() {
+    print("[ModuleList] Fetching modules...");
+    return Future.delayed(const Duration(milliseconds: 300), () async {
+      return _fetchModules().then((value) {
+        // Create list from map values
+        return value.values.toList();
+      }).catchError((error) {
+        // Return empty list
+        return List<Module>.empty();
+      });
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    // Set initial state of the widget
+    // In this case, start fetching modules
+    _reloadModules();
+  }
+
   _openModuleEditor(BuildContext ctx) {
-    print("Opening module editor");
     showDialog(
-      context: ctx,
-      builder: (context) {
-        return const ModuleEditorDialog();
-      }
+        context: ctx,
+        builder: (context) {
+          return const ModuleEditorDialog();
+        }
     );
+  }
+
+  _reloadModules() {
+    setState(() {
+      _modules = _fetchModulesAsList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openModuleEditor(context),
-        child: const Icon(Icons.add)
+          onPressed: () => _openModuleEditor(context),
+          child: const Icon(Icons.add)
       ),
       body: FutureBuilder(
-          future: _fetchListItems(),
+          future: _modules,
           builder: (context, snapshot) {
-            if (!snapshot.hasData) {
+            // Check if future is still fetching modules
+            if (snapshot.connectionState != ConnectionState.done) {
+              // If not done yet, show progress bar (circular) to
+              // indicate loading
               return const Center(child: CircularProgressIndicator());
-            } else {
-              if((snapshot.data?.length ?? 0) > 0) {
-                return CustomScrollView(
-                  slivers: <Widget>[
-                    SliverAppBar.medium(
-                      title: const Text("Modulübersicht"),
-                      actions: <Widget>[
-                        IconButton(onPressed: () {}, icon: const Icon(Icons.info_outline))
-                      ],
-                    ),
-                    SliverList(delegate: SliverChildBuilderDelegate((context, index) {
-                        int maxIndex = (snapshot.data?.length ?? 1) - 1;
-                        return Padding(
-                          padding: EdgeInsets.only(left: 12, right: 12, top: (index == 0) ? 12 : 0, bottom: (index == maxIndex) ? 96 : 0),
-                          child: ModuleItemCard(
-                            name: "Modul #${index + 1}",
-                            filled: true,
-                          ),
-                        );
-                      },
-                      childCount: snapshot.data?.length ?? 0
-                    )),
-                  ],
-                );
-              } else {
-                return CustomScrollView(
-                  slivers: <Widget>[
-                    SliverAppBar.medium(
-                      title: const Text("Modulübersicht"),
-                      centerTitle: true,
-                      scrolledUnderElevation: 4,
-                      actions: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4, right: 12),
-                          child: IconButton(onPressed: () {}, icon: const Icon(Icons.info_outline_rounded)),
-                        )
-                      ],
-                    ),
-                    SliverList(delegate: SliverChildBuilderDelegate((context, index) {
-                      int maxIndex = 9;
-                      return Padding(
-                        padding: EdgeInsets.only(
-                            left: 12,
-                            right: 12,
-                            top: (index != 0) ? 0 : 12,
-                            bottom: (index != maxIndex) ? 0 : 96
-                        ),
-                        child: ModuleItemCard(
-                          name: "Modul #${index + 1}",
-                          filled: true,
-                        ),
-                      );
-                    },
-                        childCount: 10
-                    )),
-                  ],
-                );
-              }
             }
+
+            // Check if future produced an error
+            if(snapshot.hasError) {
+              // If true, show an error card
+              return ErrorCard(title: "Whoops!", message: "Ein unerwarteter Fehler ist aufgetreten.", actions: [
+                renderRetryAction()
+              ],);
+            }
+
+            // Show a scroll view with the listed items
+            // if snapshot has data
+            return CustomScrollView(
+              slivers: <Widget>[
+                SliverAppBar.medium(
+                  title: const Text("Modulübersicht"),
+                  actions: <Widget>[
+                    IconButton(onPressed: () {}, icon: const Icon(Icons.info_outline))
+                  ],
+                ),
+                // Render list if list is not empty. Otherwise render placeholder
+                ((snapshot.data?.length ?? 0) > 0) ? _renderList(snapshot) : _renderPlaceholder(context),
+              ],
+            );
           }
       ),
     );
   }
 
+  /// Function to render the list of modules
+  Widget _renderList(AsyncSnapshot snapshot) {
+    return SliverList(delegate: SliverChildBuilderDelegate((context, index) {
+      if (snapshot.data == null) return _renderPlaceholder(context);
+
+      int maxIndex = (snapshot.data?.length ?? 1) - 1;
+      Module module = snapshot.data!.elementAt(index);
+
+      return Padding(
+        padding: EdgeInsets.only(
+            left: 12,
+            right: 12,
+            top: (index == 0) ? 12 : 0,
+            bottom: (index == maxIndex) ? 96 : 0),
+        child: ModuleItemCard(
+          name: module.name,
+          description: module.description,
+          cardsCount: module.cards.length,
+          filled: true,
+        ),
+      );},
+        // Pass the amount of available items for the list
+        // to render all available items
+        childCount: snapshot.data?.length ?? 0
+    ));
+  }
+
+  /// Function to render the placeholder that is shown on empty lists
+  Widget _renderPlaceholder(BuildContext context) {
+    return SliverFillRemaining(
+      child: ErrorCard(
+        title: "Keine Module gefunden",
+        message: "Leg' ein neues Modul an, um deine Karteikarten zu organisieren. Sobald du ein Modul erstellt hast, wird es hier angezeigt.",
+        actions: [
+          renderRetryAction(),
+          const DotDivider(),
+          TextButton.icon(
+            onPressed: () => _openModuleEditor(context),
+            label: const Text("Erstes Modul anlegen"),
+            icon: const Icon(Icons.add_circle),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget renderRetryAction() {
+    return TextButton.icon(
+      onPressed: _reloadModules,
+      label: const Text("Erneut versuchen"),
+      icon: const Icon(Icons.sync),
+    );
+  }
 }
 
