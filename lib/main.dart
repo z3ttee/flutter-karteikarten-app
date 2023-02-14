@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/behaviours/pointerScrollBehaviour.dart';
 import 'package:flutter_karteikarten_app/routes.dart';
