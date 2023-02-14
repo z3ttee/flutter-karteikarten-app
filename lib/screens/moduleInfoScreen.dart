@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
+import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:flutter_karteikarten_app/sections/moduleStatistics/moduleStatisticsSection.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import '../entities/Module.dart';
@@ -86,7 +87,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           message: "Das aufgerufene Modul existiert nicht mehr",
           actions: [
             TextButton.icon(
-              onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : Navigator.popAndPushNamed(context, "/"), 
+              onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : Navigator.popAndPushNamed(context, Routes.routeHome),
               label: const Text("Zurück zur Startseite"),
               icon: const Icon(Icons.arrow_back),
             )

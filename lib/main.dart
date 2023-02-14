@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/behaviours/pointerScrollBehaviour.dart';
 import 'package:flutter_karteikarten_app/routes.dart';
-import 'package:flutter_karteikarten_app/screens/moduleListScreen.dart';
 
 void main() {
   // Run the app
-
   runApp(const MyApp());
 }
 
@@ -15,7 +13,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'Karteikarten App',
       // Light theme settings
@@ -45,7 +42,7 @@ class MyApp extends StatelessWidget {
       // Allow scrolling via mouse-dragging on devices with cursors
       scrollBehavior: PointerScrollBehaviour(),
       routes: Routes.list(),
-      initialRoute: "/",
+      initialRoute: Routes.routeHome,
     );
   }
 }

@@ -1,4 +1,5 @@
 
+import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:flutter_karteikarten_app/screens/moduleInfoScreen.dart';
 import "package:universal_html/html.dart" as html;
 
@@ -27,6 +28,10 @@ class _ModuleListState extends State<ModuleListScreen> {
   // Create variable of type Future to not re-fetch all modules
   // when UI is rerendered
   late Future<List<Module>> _modules;
+  
+  void _navigateToModule(String moduleId) {
+    Navigator.pushNamed(context, Routes.routeModuleInfo);
+  }
 
   Future<Map<String, Module>> _fetchModules() {
     StorageManager test = StorageManager();
