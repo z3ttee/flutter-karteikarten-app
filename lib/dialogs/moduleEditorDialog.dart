@@ -87,6 +87,11 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
   void initState() {
     super.initState();
     _setIsSaving(false);
+
+    if(widget.module != null) {
+      nameController.text = widget.module!.name;
+      descriptionController.text = widget.module!.description ?? "";
+    }
   }
 
   @override

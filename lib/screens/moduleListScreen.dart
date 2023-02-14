@@ -54,11 +54,14 @@ class _ModuleListState extends State<ModuleListScreen> {
     _reloadModules();
   }
 
-  _openModuleEditor(BuildContext ctx) {
+  _openModuleEditor(BuildContext ctx, Module? module) {
     showDialog(
         context: ctx,
         builder: (context) {
-          return const ModuleEditorDialog();
+          return ModuleEditorDialog(
+            module: module,
+            mode: module == null ? ModuleEditorMode.create : ModuleEditorMode.edit,
+          );
         }
     );
   }
@@ -82,7 +85,7 @@ class _ModuleListState extends State<ModuleListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-          onPressed: () => _openModuleEditor(context),
+          onPressed: () => _openModuleEditor(context, null),
           child: const Icon(Icons.add)
       ),
       body: FutureBuilder(
@@ -145,6 +148,9 @@ class _ModuleListState extends State<ModuleListScreen> {
           onPressed: (module) {
             Navigator.pushNamed(context, "/module", arguments: ModuleInfoArguments(module));
           },
+          onEditPressed: (module) {
+            _openModuleEditor(context, module);
+          },
         ),
       );},
         // Pass the amount of available items for the list
@@ -163,7 +169,7 @@ class _ModuleListState extends State<ModuleListScreen> {
           renderRetryAction(),
           const SizedBox(height: 4,),
           TextButton.icon(
-            onPressed: () => _openModuleEditor(context),
+            onPressed: () => _openModuleEditor(context, null),
             label: const Text("Erstes Modul anlegen"),
             icon: const Icon(Icons.add_circle),
           ),

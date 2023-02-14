@@ -16,12 +16,14 @@ class ModuleItemCard extends StatelessWidget {
 
   final Module module;
   final ValueSetter<Module>? onPressed;
+  final ValueSetter<Module>? onEditPressed;
 
   const ModuleItemCard({
     super.key,
     required this.module,
     this.onPressed,
     this.filled = false,
+    this.onEditPressed,
   });
 
   @override
@@ -104,9 +106,11 @@ class ModuleItemCard extends StatelessWidget {
                             highlightColor: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.12),
                           ),
                         ),),
-                        Padding(padding: const EdgeInsets.only(left: 4), child: IconButton(
+                        // Only show edit button, if there
+                        // is an event handler registered to catch the click
+                        onEditPressed == null ? Container() : Padding(padding: const EdgeInsets.only(left: 4), child: IconButton(
                           icon: const Icon(Icons.edit),
-                          onPressed: () {},
+                          onPressed: () => onEditPressed?.call(module),
                           style: IconButton.styleFrom(
                             backgroundColor: Theme.of(context).colorScheme.surface,
                             foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
