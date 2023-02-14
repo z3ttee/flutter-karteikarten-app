@@ -65,20 +65,22 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
       }
 
       var manager = StorageManager();
-      /*
-      manager.saveAll(module).then((val) {
-        if (kDebugMode) {
-          print("Saved module: ${module.toJson()}");
-        }
+      manager.saveModule(module).then((succeeded) {
+        print(succeeded);
+        if(succeeded) {
+          if (kDebugMode) {
+            print("Saved module: ${module.toJson()}");
+          }
 
-        widget.onDidChange?.call();
-        _closeDialog();
-        Snackbars.message("Das Modul wurde ${widget.mode == ModuleEditorMode.edit ? 'bearbeitet' : 'erstellt'}.", context);
+          widget.onDidChange?.call();
+          _closeDialog();
+          Snackbars.message("Das Modul wurde ${widget.mode == ModuleEditorMode.edit ? 'bearbeitet' : 'erstellt'}.", context);
+        } else {
+          Snackbars.message("Das Modul konnte nicht gespeichert werden", context);
+        }
       }).onError((error, stackTrace) {
         _setIsSaving(false);
       });
-
-       */
     } else {
       if (kDebugMode) {
         print("[ModuleEditorDialog] Form values not valid.");

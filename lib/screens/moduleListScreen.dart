@@ -30,6 +30,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
   Future<Map<String, Module>> _fetchModules() {
     StorageManager test = StorageManager();
+    return test.readALl();
     return test.getDummyModules(kDebugMode ? 10 : 0);
   }
 
@@ -98,6 +99,12 @@ class _ModuleListState extends State<ModuleListScreen> {
       body: FutureBuilder(
           future: _modules,
           builder: (context, snapshot) {
+            // Check if future produced an error
+            if(snapshot.connectionState == ConnectionState.waiting) {
+              // If true, show an error card
+              return const Center(child: CircularProgressIndicator());
+            }
+
             // Check if future produced an error
             if(snapshot.hasError) {
               // If true, show an error card
