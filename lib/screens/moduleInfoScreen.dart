@@ -22,11 +22,13 @@ class ModuleInfoScreen extends StatefulWidget {
 class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   late final Module _module;
 
+  _openModuleEditor() {
+
+  }
+
   @override
   void initState() {
     super.initState();
-
-
   }
 
   @override
@@ -48,16 +50,20 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          children: [
-            const Text("Modul", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w100),),
-            Text(module.name)
-          ],
-        ),
-        centerTitle: false,
+        title: Text(module.name),
+        centerTitle: true,
         leading: BackButton(
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: IconButton(
+              onPressed: () => _openModuleEditor(),
+              icon: const Icon(Icons.edit)
+            ),
+          )
+        ],
       ),
     );
   }
