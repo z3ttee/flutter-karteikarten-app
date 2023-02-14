@@ -2,6 +2,7 @@
 //import 'dart:convert';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter_karteikarten_app/entities/Card.dart';
@@ -32,7 +33,10 @@ class StorageManager {
     final String? modulesAsString = prefs.getString("data");
     //Map<String,Module> x = json.decode(modulesAsString!) ;
     Map<String, Module> result = {};
-    if(modulesAsString == null){return result;};
+    if(modulesAsString == null){
+      if(kDebugMode){return getDummy(5);}
+      return result;
+    }
     Map x = json.decode(modulesAsString!);
     x.forEach((key, value) {
       result[key] = Module(value['name'], value['description']);
@@ -47,17 +51,21 @@ class StorageManager {
         if ((e['lastCorrect'] as bool)) {
           wrongCounter++;
         }
-        //print(result);
         result[key]!.cards[y.id] = y;
       });
       result[key]!.wrongCounter = wrongCounter;
-      //print(result[key]?.id);
     });
     return result;
   }
 
-  Future<bool> saveModule(Module module) async {
+  Future<bool> saveModule(Module module, {bool overwriteCards =false}) async {
     Map<String, Module> currentData = await readALl() ;
+    if(!overwriteCards) {
+      Map<String, Card>? moduleCards = currentData[module.id]?.cards;
+      if(!(moduleCards == null)){
+        currentData[module.id]!.cards = moduleCards;
+      }
+    }
     currentData[module.id] = module;
     return await saveAll(currentData);
   }
