@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/constants.dart';
+import 'package:flutter_karteikarten_app/sections/moduleStatistics/moduleStatisticsSection.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import '../entities/Module.dart';
 
@@ -62,6 +64,14 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
               onPressed: () => _openModuleEditor(),
               icon: const Icon(Icons.edit)
             ),
+          )
+        ],
+      ),
+      body: ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
+            child: ModuleStatisticsSection(module: module,),
           )
         ],
       ),

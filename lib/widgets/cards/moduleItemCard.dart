@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
+import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/widgets/dividers/dotDivider.dart';
 
 class ModuleItemCard extends StatelessWidget {
@@ -35,12 +37,11 @@ class ModuleItemCard extends StatelessWidget {
             ),
             borderRadius: const BorderRadius.all(Radius.circular(12))
         ),
-
         color: filled ? Theme.of(context).colorScheme.surfaceVariant : Theme.of(context).colorScheme.surface,
         shadowColor: Theme.of(context).colorScheme.shadow,
         surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Constants.cardInnerPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -70,7 +71,7 @@ class ModuleItemCard extends StatelessWidget {
                       children: [
                         Text("${module.cards.length} Karte${(module.cards.length != 1 ? 'n' : '')}"),
                         const DotDivider(),
-                        Text("${((0) / (module.cards.isEmpty ? 1 : module.cards.length)).round()} %")
+                        Text("${Calc.calcModuleProgress(module)} %"),
                       ],
                     ),
                     side: const BorderSide(color: Colors.transparent),

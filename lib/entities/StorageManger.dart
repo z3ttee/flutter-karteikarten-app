@@ -1,13 +1,9 @@
 
-//import 'dart:convert';
 import 'dart:convert';
-
+import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:uuid/uuid.dart';
-
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'Module.dart';
 
 class StorageManager {
@@ -53,8 +49,8 @@ class StorageManager {
       result[key]?.id = value['id'];
       //print(value);
       List rawMapCards = value['cards'];
-      //Count the last wrong cards
-      int wrongCounter = 0;
+      //Count the last correctly answered cards
+      int correctCardsCounter = 0;
 
       // Loop through cards in decoded json map
       for (var entity in rawMapCards) {
@@ -65,8 +61,9 @@ class StorageManager {
 
         // If the card was answered incorrectly in last iteration
         // increase wrong counter
+        print(entity['lastCorrect']);
         if ((entity['lastCorrect'] as bool)) {
-          wrongCounter++;
+          correctCardsCounter++;
         }
 
         //Add cards to modules map
@@ -74,7 +71,7 @@ class StorageManager {
       }
 
       //Add the amount of wrong answerd questions
-      result[key]!.wrongCounter = wrongCounter;
+      result[key]!.correctCards = correctCardsCounter;
     });
     return result;
   }
@@ -124,11 +121,18 @@ class StorageManager {
     for (int i = 0; i < y; i++) {
       Module zzz = Module("name $i", "description $i");
       x[zzz.id] = zzz;
-      for (int j = 0; j < 3; j++) {
+
+      var maxCards = Random().nextInt(10);
+      var correctCardsCounter = 0;
+
+      for (int j = 0; j < maxCards; j++) {
         Card ddd = Card("question $j", "answer $j");
-        if((j%2) == 0){ddd.lastCorrect = true;};
+        ddd.lastCorrect = Random().nextBool();
+        if(ddd.lastCorrect) correctCardsCounter++;
         x[zzz.id]?.cards[ddd.id] = ddd;
       }
+
+      x[zzz.id]?.correctCards = correctCardsCounter;
     }
 
     return x;

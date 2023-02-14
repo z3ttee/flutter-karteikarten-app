@@ -1,6 +1,3 @@
-import 'dart:collection';
-import 'dart:convert';
-
 import 'Card.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,7 +7,8 @@ class Module{
   String? description = "";
   String id = "";
   Map<String,Card> cards = {};
-  int wrongCounter = 0;
+  int correctCards = 0;
+  int iterations = 0;
 
   void addCard(Card card){
     cards[card.id]= card;
