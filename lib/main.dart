@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/behaviours/pointerScrollBehaviour.dart';
+import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:flutter_karteikarten_app/screens/moduleListScreen.dart';
 
 void main() {
@@ -43,9 +44,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // Allow scrolling via mouse-dragging on devices with cursors
       scrollBehavior: PointerScrollBehaviour(),
-      routes: {
-        '/': (context) => const ModuleListScreen(),
-      },
+      routes: Routes.list(),
+      initialRoute: "/",
     );
   }
 }

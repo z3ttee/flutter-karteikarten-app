@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
@@ -16,10 +17,13 @@ enum ModuleEditorMode {
 class ModuleEditorDialog extends StatefulWidget {
   final Module? module;
   final ModuleEditorMode? mode;
+  final Function? onDidChange;
+
   const ModuleEditorDialog({
     super.key,
     this.module,
-    this.mode = ModuleEditorMode.create
+    this.mode = ModuleEditorMode.create,
+    this.onDidChange
   });
 
   @override
@@ -45,7 +49,9 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
     if(_formKey.currentState?.validate() ?? false) {
       _setIsSaving(true);
 
-      print("[ModuleEditorDialog] Form successfully validated.");
+      if (kDebugMode) {
+        print("[ModuleEditorDialog] Form successfully validated.");
+      }
 
       Module module;
       // Update the module if editor is in edit mode
@@ -61,8 +67,11 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
       var manager = StorageManager();
       /*
       manager.saveAll(module).then((val) {
-        print("Saved module: ${module.toJson()}");
-        
+        if (kDebugMode) {
+          print("Saved module: ${module.toJson()}");
+        }
+
+        widget.onDidChange?.call();
         _closeDialog();
         Snackbars.message("Das Modul wurde ${widget.mode == ModuleEditorMode.edit ? 'bearbeitet' : 'erstellt'}.", context);
       }).onError((error, stackTrace) {
@@ -71,7 +80,9 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
 
        */
     } else {
-      print("[ModuleEditorDialog] Form values not valid.");
+      if (kDebugMode) {
+        print("[ModuleEditorDialog] Form values not valid.");
+      }
     }
   }
 
@@ -83,6 +94,11 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
   void initState() {
     super.initState();
     _setIsSaving(false);
+
+    if(widget.module != null) {
+      nameController.text = widget.module!.name;
+      descriptionController.text = widget.module!.description ?? "";
+    }
   }
 
   @override

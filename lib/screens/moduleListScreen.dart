@@ -1,4 +1,5 @@
 
+import 'package:flutter_karteikarten_app/screens/moduleInfoScreen.dart';
 import "package:universal_html/html.dart" as html;
 
 import 'package:flutter/foundation.dart';
@@ -29,8 +30,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
   Future<Map<String, Module>> _fetchModules() {
     StorageManager test = StorageManager();
-
-    return test.getDummyModules(0);
+    return test.getDummyModules(kDebugMode ? 10 : 0);
   }
 
   Future<List<Module>> _fetchModulesAsList() {
@@ -54,11 +54,21 @@ class _ModuleListState extends State<ModuleListScreen> {
     _reloadModules();
   }
 
-  _openModuleEditor(BuildContext ctx) {
+  _openModuleEditor(BuildContext ctx, Module? module) {
     showDialog(
         context: ctx,
         builder: (context) {
-          return const ModuleEditorDialog();
+          return ModuleEditorDialog(
+            module: module,
+            mode: module == null ? ModuleEditorMode.create : ModuleEditorMode.edit,
+            onDidChange: () {
+              if(kDebugMode) {
+                print("[ModuleListScreen] Module value changed");
+              }
+
+              _reloadModulesSilent();
+            },
+          );
         }
     );
   }
@@ -82,19 +92,12 @@ class _ModuleListState extends State<ModuleListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-          onPressed: () => _openModuleEditor(context),
+          onPressed: () => _openModuleEditor(context, null),
           child: const Icon(Icons.add)
       ),
       body: FutureBuilder(
           future: _modules,
           builder: (context, snapshot) {
-            // Check if future is still fetching modules
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              // If not done yet, show progress bar (circular) to
-              // indicate loading
-              return const Center(child: CircularProgressIndicator());
-            }
-
             // Check if future produced an error
             if(snapshot.hasError) {
               // If true, show an error card
@@ -140,10 +143,14 @@ class _ModuleListState extends State<ModuleListScreen> {
             top: (index == 0) ? 12 : 0,
             bottom: (index == maxIndex) ? 96 : 0),
         child: ModuleItemCard(
-          name: module.name,
-          description: module.description,
-          cardsCount: module.cards.length,
+          module: module,
           filled: true,
+          onPressed: (module) {
+            Navigator.pushNamed(context, "/module", arguments: ModuleInfoArguments(module));
+          },
+          onEditPressed: (module) {
+            _openModuleEditor(context, module);
+          },
         ),
       );},
         // Pass the amount of available items for the list
@@ -162,7 +169,7 @@ class _ModuleListState extends State<ModuleListScreen> {
           renderRetryAction(),
           const SizedBox(height: 4,),
           TextButton.icon(
-            onPressed: () => _openModuleEditor(context),
+            onPressed: () => _openModuleEditor(context, null),
             label: const Text("Erstes Modul anlegen"),
             icon: const Icon(Icons.add_circle),
           ),
