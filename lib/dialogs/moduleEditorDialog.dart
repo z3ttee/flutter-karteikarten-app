@@ -59,6 +59,7 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
       }
 
       var manager = StorageManager();
+      /*
       manager.saveAll(module).then((val) {
         print("Saved module: ${module.toJson()}");
         
@@ -67,6 +68,8 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
       }).onError((error, stackTrace) {
         _setIsSaving(false);
       });
+
+       */
     } else {
       print("[ModuleEditorDialog] Form values not valid.");
     }

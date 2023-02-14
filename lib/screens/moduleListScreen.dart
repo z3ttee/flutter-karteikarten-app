@@ -29,6 +29,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
   Future<Map<String, Module>> _fetchModules() {
     StorageManager test = StorageManager();
+
     return test.getDummyModules(0);
   }
 

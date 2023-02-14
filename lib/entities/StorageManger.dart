@@ -1,5 +1,7 @@
 
 //import 'dart:convert';
+import 'dart:convert';
+
 import 'package:uuid/uuid.dart';
 
 import 'package:flutter_karteikarten_app/entities/Card.dart';
@@ -7,83 +9,89 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Module.dart';
 
-class StorageManager{
+class StorageManager {
   //https://docs.flutter.dev/cookbook/persistence/reading-writing-files
   StorageManager();
 
-  Future<void> saveAll(Module module) async {
-    print(module.id.toString());
-    final prefs = await SharedPreferences.getInstance();
 
-    await prefs.setString(module.id.toString(), module.toJson());
+  Future<bool> saveAll(Map<String, Module> modules) async {
+    final prefs = await SharedPreferences.getInstance();
+    Map json2 = {};
+    modules.forEach((key, value) {
+      json2[key] = json.encode(value);
+    });
+    //print(json.encode(modules));
+
+
+    return await prefs.setString("data", json.encode(modules));
   }
 
-  Future<String?> getModuleByID(int id) async{
+
+  Future<Map<String, Module>> readALl() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? module = prefs.getString(id.toString());
+    final String? modulesAsString = prefs.getString("data");
+    //Map<String,Module> x = json.decode(modulesAsString!) ;
+    Map x = json.decode(modulesAsString!);
+    Map<String, Module> result = {};
+    x.forEach((key, value) {
+      result[key] = Module(value['name'], value['description']);
+      result[key]?.id = value['id'];
+      //print(value);
+      List f = value['cards'];
+      int wrongCounter = 0;
+      f.forEach((e) {
+        Card y = Card(e['question'], e['answer']);
+        y.id = e['id'];
+        y.lastCorrect = e['lastCorrect'];
+        if ((e['lastCorrect'] as bool)) {
+          wrongCounter++;
+        }
+        //print(result);
+        result[key]!.cards[y.id] = y;
+      });
+      result[key]!.wrongCounter = wrongCounter;
+      //print(result[key]?.id);
+    });
 
-    print(module);
-    return module;
+    return result;
   }
-  Future<String?> getModules() async{
-    final prefs = await SharedPreferences.getInstance();
-    final String? module = prefs.getString("data");
 
-    print(module);
-    return module;
+  Future<bool> saveModule(Module module) async {
+    Map<String, Module> currentData = await readALl();
+    currentData[module.id] = module;
+    return await saveAll(currentData);
   }
 
-  Map<String,Module> getDummy(int y ){
-    Map<String,Module> x = {};
-    for(int i = 0; i < y; i++){
+  Future<bool> saveCard(String moduleId, Card card) async {
+    Map<String, Module> currentData = await readALl();
+    currentData[moduleId]!.cards[card.id] = card;
+    return await saveAll(currentData);
+  }
+  
+  
+  
+
+  Map<String, Module> getDummy(int y) {
+    Map<String, Module> x = {};
+    for (int i = 0; i < y; i++) {
       Module zzz = Module("name $i", "description $i");
       x[zzz.id] = zzz;
-      for (int j = 0; j < 3 ; j++){
+      for (int j = 0; j < 3; j++) {
         Card ddd = Card("question $j", "answer $j");
+        if((j%2) == 0){ddd.lastCorrect = true;};
         x[zzz.id]?.cards[ddd.id] = ddd;
       }
     }
+
     return x;
   }
 
-  Future<Map<String,Module>> getDummyModules(int y ){
-    Map<String,Module> x = {};
-    for(int i = 0; i < y; i++){
+  Future<Map<String, Module>> getDummyModules(int y) {
+    Map<String, Module> x = {};
+    for (int i = 0; i < y; i++) {
       Module zzz = Module("name $i", "description $i");
       x[zzz.id] = zzz;
     }
     return Future.value(x);
   }
-
-  void Jsono(){
-    Map<String,Module> json = getDummy(5);
-    //print(json);
-     /*
-    json.forEach((key, value) {
-      json[key]?.cards?.forEach((key, value) {
-        print(value.answer);
-      });
-    });
-    */
-  }
-
-
-/*
-  x(){
-    return
-      [
-      {
-        "moduleName" : modle.name,
-        "moduleDescription" : m.d,
-        "moduleId" : m.id,
-        "cards": [
-          {
-
-          }
-
-        ]
-      }
-    ]
-  }
-  */
 }
