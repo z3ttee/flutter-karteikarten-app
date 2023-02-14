@@ -1,5 +1,6 @@
 # Flutter Karteikarten App
-[![CI/CD Latest Release](https://github.com/z3ttee/flutter-karteikarten-app/actions/workflows/main.yml/badge.svg)](https://github.com/z3ttee/flutter-karteikarten-app/actions/workflows/main.yml)
+[![CI/CD Latest Release](https://github.com/z3ttee/flutter-karteikarten-app/actions/workflows/main.yml/badge.svg)](https://github.com/z3ttee/flutter-karteikarten-app/actions/workflows/main.yml) 
+![Latest Web Build](https://vercelbadge.vercel.app/api/z3ttee/flutter-karteikarten-app)
 
 This project contains the source code for a learning app that implements a system to manage index-cards.
 
