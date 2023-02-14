@@ -31,8 +31,9 @@ class StorageManager {
     final prefs = await SharedPreferences.getInstance();
     final String? modulesAsString = prefs.getString("data");
     //Map<String,Module> x = json.decode(modulesAsString!) ;
-    Map x = json.decode(modulesAsString!);
     Map<String, Module> result = {};
+    if(modulesAsString == null){return result;};
+    Map x = json.decode(modulesAsString!);
     x.forEach((key, value) {
       result[key] = Module(value['name'], value['description']);
       result[key]?.id = value['id'];
@@ -52,12 +53,11 @@ class StorageManager {
       result[key]!.wrongCounter = wrongCounter;
       //print(result[key]?.id);
     });
-
     return result;
   }
 
   Future<bool> saveModule(Module module) async {
-    Map<String, Module> currentData = await readALl();
+    Map<String, Module> currentData = await readALl() ;
     currentData[module.id] = module;
     return await saveAll(currentData);
   }
