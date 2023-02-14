@@ -17,10 +17,13 @@ enum ModuleEditorMode {
 class ModuleEditorDialog extends StatefulWidget {
   final Module? module;
   final ModuleEditorMode? mode;
+  final Function? onDidChange;
+
   const ModuleEditorDialog({
     super.key,
     this.module,
-    this.mode = ModuleEditorMode.create
+    this.mode = ModuleEditorMode.create,
+    this.onDidChange
   });
 
   @override
@@ -66,7 +69,8 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
         if (kDebugMode) {
           print("Saved module: ${module.toJson()}");
         }
-        
+
+        widget.onDidChange?.call();
         _closeDialog();
         Snackbars.message("Das Modul wurde ${widget.mode == ModuleEditorMode.edit ? 'bearbeitet' : 'erstellt'}.", context);
       }).onError((error, stackTrace) {

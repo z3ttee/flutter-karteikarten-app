@@ -61,6 +61,13 @@ class _ModuleListState extends State<ModuleListScreen> {
           return ModuleEditorDialog(
             module: module,
             mode: module == null ? ModuleEditorMode.create : ModuleEditorMode.edit,
+            onDidChange: () {
+              if(kDebugMode) {
+                print("[ModuleListScreen] Module value changed");
+              }
+
+              _reloadModulesSilent();
+            },
           );
         }
     );
@@ -91,13 +98,6 @@ class _ModuleListState extends State<ModuleListScreen> {
       body: FutureBuilder(
           future: _modules,
           builder: (context, snapshot) {
-            // Check if future is still fetching modules
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              // If not done yet, show progress bar (circular) to
-              // indicate loading
-              return const Center(child: CircularProgressIndicator());
-            }
-
             // Check if future produced an error
             if(snapshot.hasError) {
               // If true, show an error card
