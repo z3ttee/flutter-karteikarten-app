@@ -8,8 +8,8 @@ import 'package:flutter_font_icons/flutter_font_icons.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/dialogs/moduleEditorDialog.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
-import 'package:flutter_karteikarten_app/widgets/errorCard.dart';
-import 'package:flutter_karteikarten_app/widgets/moduleItemCard.dart';
+import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
+import 'package:flutter_karteikarten_app/widgets/cards/moduleItemCard.dart';
 import '../entities/Module.dart';
 
 class ModuleListScreen extends StatefulWidget {
@@ -30,8 +30,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
   Future<Map<String, Module>> _fetchModules() {
     StorageManager test = StorageManager();
-    return test.readALl();
-    return test.getDummyModules(kDebugMode ? 10 : 0);
+    return test.readAll();
   }
 
   Future<List<Module>> _fetchModulesAsList() {

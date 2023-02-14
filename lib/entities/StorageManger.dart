@@ -14,7 +14,7 @@ class StorageManager {
   //Empty Constructor
   StorageManager();
 
-  //Save all Entries
+  /// Save all modules in shared preferences
   Future<bool> saveAll(Map<String, Module> modules) async {
     //shared Preferences Instance
     final prefs = await SharedPreferences.getInstance();
@@ -27,20 +27,26 @@ class StorageManager {
     return await prefs.setString("data", json.encode(modules));
   }
 
-  //read the whole list
-  Future<Map<String, Module>> readALl() async {
+  /// Read all modules from shared preferences
+  Future<Map<String, Module>> readAll({ int dummyElements = 8 }) async {
+    // Get instance of shared preferences
     final prefs = await SharedPreferences.getInstance();
+    // Read json string from shared preferences
     final String? modulesAsString = prefs.getString("data");
-    //Map<String,Module> x = json.decode(modulesAsString!) ;
+    // Create empty instance of a map
     Map<String, Module> result = {};
-    //Check if list exists, if not retrive an empty one
+
+    // Check if list exists (a valid string was returned previously).
+    // If not return the empty instance from above
     if(modulesAsString == null){
-      //in debug mode, create a dummy list
-      if(kDebugMode){return getDummy(5);}
+      // in debug mode, create a dummy list
+      if(kDebugMode){return getDummy(dummyElements);}
+      // If not in debug mode, return empty list
       return result;
     }
+
     //Json to Objects
-    Map jsonRaw = json.decode(modulesAsString!);
+    Map jsonRaw = json.decode(modulesAsString);
     //Create the Modules from json
     jsonRaw.forEach((key, value) {
       result[key] = Module(value['name'], value['description']);
@@ -49,27 +55,34 @@ class StorageManager {
       List rawMapCards = value['cards'];
       //Count the last wrong cards
       int wrongCounter = 0;
-      //Create Cards from Json
-      rawMapCards.forEach((e) {
-        Card y = Card(e['question'], e['answer']);
-        y.id = e['id'];
-        y.lastCorrect = e['lastCorrect'];
-        if ((e['lastCorrect'] as bool)) {
+
+      // Loop through cards in decoded json map
+      for (var entity in rawMapCards) {
+        // Instantiate new card
+        Card y = Card(entity['question'], entity['answer']);
+        y.id = entity['id'];
+        y.lastCorrect = entity['lastCorrect'];
+
+        // If the card was answered incorrectly in last iteration
+        // increase wrong counter
+        if ((entity['lastCorrect'] as bool)) {
           wrongCounter++;
         }
-        //Add cards to modules
+
+        //Add cards to modules map
         result[key]!.cards[y.id] = y;
-      });
+      }
+
       //Add the amount of wrong answerd questions
       result[key]!.wrongCounter = wrongCounter;
     });
     return result;
   }
 
-  //Save one Module
+  /// Save a single module to shared preferences. Setting overwriteCards=true overwrites attached cards.
   Future<bool> saveModule(Module module, {bool overwriteCards =false}) async {
     //Read the current data
-    Map<String, Module> currentData = await readALl() ;
+    Map<String, Module> currentData = await readAll() ;
     //Check if the cards of a module schould be overwritten
     if(!overwriteCards) {
       //get current cards
@@ -85,10 +98,10 @@ class StorageManager {
     return await saveAll(currentData);
   }
 
-  //Method to save on Card in a module
+  /// Save a single card on a module. If the card does not exist on the module, it will be created. Otherwise the card is updated.
   Future<bool> saveCard(String moduleId, Card card) async {
     //retrieve whole Data
-    Map<String, Module> currentData = await readALl();
+    Map<String, Module> currentData = await readAll();
     //Save the Card in the Module
     currentData[moduleId]!.cards[card.id] = card;
     //Save to Storage
@@ -97,7 +110,7 @@ class StorageManager {
 
   Future<Module?> readOneModule(String moduleId) async{
     //retrieve whole Data
-    Map<String, Module> currentData = await readALl();
+    Map<String, Module> currentData = await readAll();
     //get the module
     Module? result = currentData[moduleId];
     //return the Module

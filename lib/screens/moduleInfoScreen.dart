@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter_karteikarten_app/widgets/errorCard.dart';
+import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import '../entities/Module.dart';
 
 class ModuleInfoArguments {

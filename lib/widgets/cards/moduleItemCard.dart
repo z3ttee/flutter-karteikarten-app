@@ -1,21 +1,16 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
-import 'package:flutter_karteikarten_app/widgets/dotDivider.dart';
+import 'package:flutter_karteikarten_app/widgets/dividers/dotDivider.dart';
 
 class ModuleItemCard extends StatelessWidget {
-
-  /// Name of the module
-  /// Description of the module
-  /// Amount of created cards inside the module
-  /// Amount of incorrect answers during last iteration
-  /// Amount of iterations. During an iteration the user goes through all cards and
-  /// tries answer them correctly
-
   final bool filled;
 
+  /// Module data to display in the card
   final Module module;
+  /// Callback function to handle clicks on the card
   final ValueSetter<Module>? onPressed;
+  /// Callback function to show an edit button and handle the button press
   final ValueSetter<Module>? onEditPressed;
 
   const ModuleItemCard({
