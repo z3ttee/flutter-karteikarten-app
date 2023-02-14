@@ -61,7 +61,6 @@ class StorageManager {
 
         // If the card was answered incorrectly in last iteration
         // increase wrong counter
-        print(entity['lastCorrect']);
         if ((entity['lastCorrect'] as bool)) {
           correctCardsCounter++;
         }
@@ -105,7 +104,7 @@ class StorageManager {
     return await saveAll(currentData);
   }
 
-  Future<Module?> readOneModule(String moduleId) async{
+  Future<Module?> readOneModule(String moduleId) async {
     //retrieve whole Data
     Map<String, Module> currentData = await readAll();
     //get the module

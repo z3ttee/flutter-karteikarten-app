@@ -1,9 +1,13 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
+import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:flutter_karteikarten_app/sections/moduleStatistics/moduleStatisticsSection.dart';
+import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
+import 'package:go_router/go_router.dart';
 import '../entities/Module.dart';
 
 class ModuleInfoArguments {
@@ -13,7 +17,12 @@ class ModuleInfoArguments {
 }
 
 class ModuleInfoScreen extends StatefulWidget {
-  const ModuleInfoScreen({super.key});
+  final GoRouterState activatedRoute;
+
+  const ModuleInfoScreen({
+    super.key,
+    required this.activatedRoute
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -23,40 +32,71 @@ class ModuleInfoScreen extends StatefulWidget {
 }
 
 class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
-  late final Module _module;
+  late Future<Module?> _module;
 
   _openModuleEditor() {
 
   }
 
+  _navigateHome() {
+    if(context.canPop()) {
+      // If the context can pop this page,
+      // then do this to navigate back to previous page
+      context.pop();
+    } else {
+      // Use goNamed() to not add this info route to the
+      // routing history.
+      context.goNamed(Routes.routeHome);
+    }
+  }
+
+  Future<Module?> _fetchModule(String? moduleId) {
+    StorageManager manager = StorageManager();
+
+    if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
+    if(moduleId == null) return Future(() => null);
+    return manager.readOneModule(moduleId).then((value) {
+      if (kDebugMode) print("[ModuleInfoScreen] Loaded module with id '$moduleId'");
+      return value;
+    }).onError((error, stackTrace) {
+      if (kDebugMode) print("[ModuleInfoScreen] Failed loading module with id '$moduleId'");
+      Snackbars.message("Ein unerwarteter Fehler ist aufgetreten.", context);
+      return null;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+
+    var moduleId = widget.activatedRoute.params["moduleId"];
+    _module = _fetchModule(moduleId);
   }
 
   @override
   Widget build(BuildContext context) {
-    var hasValidModule = ModalRoute.of(context)?.settings != null && ModalRoute.of(context)!.settings.arguments != null;
+    return Material(
+      child: FutureBuilder<Module?>(
+        future: _module,
+        builder: (context, snapshot) {
 
-    if(hasValidModule) {
-      return _renderInfoScreen();
-    } else {
-      return _renderErrorScreen();
-    }
+          if(snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator(),);
+          }
+
+          return snapshot.data == null ? _renderErrorScreen() : _renderInfoScreen(snapshot.data!);
+        }
+      ),
+    );
   }
 
-  Widget _renderInfoScreen() {
-    // Get arguments from route
-    final args = ModalRoute.of(context)!.settings.arguments as ModuleInfoArguments;
-    // Extract module from route args
-    Module module = args.module;
-
+  Widget _renderInfoScreen(Module module) {
     return Scaffold(
       appBar: AppBar(
         title: Text(module.name),
         centerTitle: true,
         leading: BackButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => _navigateHome(),
         ),
         actions: [
           Padding(
@@ -87,7 +127,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           message: "Das aufgerufene Modul existiert nicht mehr",
           actions: [
             TextButton.icon(
-              onPressed: () => Navigator.canPop(context) ? Navigator.pop(context) : Navigator.popAndPushNamed(context, Routes.routeHome),
+              onPressed: () => _navigateHome(),
               label: const Text("Zurück zur Startseite"),
               icon: const Icon(Icons.arrow_back),
             )

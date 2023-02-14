@@ -66,10 +66,9 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
 
       var manager = StorageManager();
       manager.saveModule(module).then((succeeded) {
-        print(succeeded);
         if(succeeded) {
           if (kDebugMode) {
-            print("Saved module: ${module.toJson()}");
+            print("[ModuleEditorDialog] Saved module: ${module.toJson()}");
           }
 
           widget.onDidChange?.call();
@@ -108,7 +107,7 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
     return Dialog.fullscreen(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text("Modul bearbeiten"),
+          title: Text(widget.mode == ModuleEditorMode.edit ? "Modul bearbeiten" : "Neues Modul erstellen"),
           leading: IconButton(onPressed: () => _closeDialog(), icon: const Icon(Icons.close)),
           centerTitle: true,
           actions: [

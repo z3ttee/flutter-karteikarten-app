@@ -1,6 +1,5 @@
-
 import 'package:flutter_karteikarten_app/routes.dart';
-import 'package:flutter_karteikarten_app/screens/moduleInfoScreen.dart';
+import 'package:go_router/go_router.dart';
 import "package:universal_html/html.dart" as html;
 
 import 'package:flutter/foundation.dart';
@@ -30,7 +29,7 @@ class _ModuleListState extends State<ModuleListScreen> {
   late Future<List<Module>> _modules;
   
   void _navigateToModule(String moduleId) {
-    Navigator.pushNamed(context, Routes.routeModuleInfo);
+    context.pushNamed(Routes.routeModuleInfo, params: { "moduleId": moduleId });
   }
 
   Future<Map<String, Module>> _fetchModules() {
@@ -39,7 +38,10 @@ class _ModuleListState extends State<ModuleListScreen> {
   }
 
   Future<List<Module>> _fetchModulesAsList() {
-    print("[ModuleList] Fetching modules...");
+    if (kDebugMode) {
+      print("[ModuleList] Fetching modules...");
+    }
+
     return Future.delayed(const Duration(milliseconds: 300), () async {
       return _fetchModules().then((value) {
         // Create list from map values
@@ -156,9 +158,7 @@ class _ModuleListState extends State<ModuleListScreen> {
         child: ModuleItemCard(
           module: module,
           filled: true,
-          onPressed: (module) {
-            Navigator.pushNamed(context, "/module", arguments: ModuleInfoArguments(module));
-          },
+          onPressed: (module) => _navigateToModule(module.id),
           onEditPressed: (module) {
             _openModuleEditor(context, module);
           },
