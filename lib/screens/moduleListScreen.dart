@@ -1,4 +1,5 @@
 
+import 'package:flutter_karteikarten_app/screens/moduleInfoScreen.dart';
 import "package:universal_html/html.dart" as html;
 
 import 'package:flutter/foundation.dart';
@@ -29,7 +30,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
   Future<Map<String, Module>> _fetchModules() {
     StorageManager test = StorageManager();
-    return test.getDummyModules(0);
+    return test.getDummyModules(kDebugMode ? 10 : 0);
   }
 
   Future<List<Module>> _fetchModulesAsList() {
@@ -139,10 +140,11 @@ class _ModuleListState extends State<ModuleListScreen> {
             top: (index == 0) ? 12 : 0,
             bottom: (index == maxIndex) ? 96 : 0),
         child: ModuleItemCard(
-          name: module.name,
-          description: module.description,
-          cardsCount: module.cards.length,
+          module: module,
           filled: true,
+          onPressed: (module) {
+            Navigator.pushNamed(context, "/module", arguments: ModuleInfoArguments(module));
+          },
         ),
       );},
         // Pass the amount of available items for the list

@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
@@ -45,7 +46,9 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
     if(_formKey.currentState?.validate() ?? false) {
       _setIsSaving(true);
 
-      print("[ModuleEditorDialog] Form successfully validated.");
+      if (kDebugMode) {
+        print("[ModuleEditorDialog] Form successfully validated.");
+      }
 
       Module module;
       // Update the module if editor is in edit mode
@@ -60,7 +63,9 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
 
       var manager = StorageManager();
       manager.saveAll(module).then((val) {
-        print("Saved module: ${module.toJson()}");
+        if (kDebugMode) {
+          print("Saved module: ${module.toJson()}");
+        }
         
         _closeDialog();
         Snackbars.message("Das Modul wurde ${widget.mode == ModuleEditorMode.edit ? 'bearbeitet' : 'erstellt'}.", context);
@@ -68,7 +73,9 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
         _setIsSaving(false);
       });
     } else {
-      print("[ModuleEditorDialog] Form values not valid.");
+      if (kDebugMode) {
+        print("[ModuleEditorDialog] Form values not valid.");
+      }
     }
   }
 
