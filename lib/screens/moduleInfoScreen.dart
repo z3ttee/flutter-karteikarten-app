@@ -153,6 +153,10 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           )
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _openCardEditor(),
+        child: const Icon(Icons.add),
+      ),
       body: ListView.builder(
             itemCount: (data.indexCards.length) + 4,
             itemBuilder: (context, itemIndex) {
