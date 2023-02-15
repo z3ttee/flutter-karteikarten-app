@@ -56,6 +56,8 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   final StorageManager storageManager = StorageManager();
   final CardsManager cardsManager = CardsManager();
 
+  String currentFilterName = Constants.filterAll;
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +83,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
     // Subscribe to changes to the filter value and re-fetch cards
     filterSubscription = filterStream.listen((filterName) {
+      currentFilterName = filterName;
       _fetchAndPushCards(_moduleId, filterName);
     });
   }
@@ -132,7 +135,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
         moduleId: moduleId,
         indexCard: indexCard,
         onDidChange: (card) {
-          // TODO
+          _fetchAndPushCards(_moduleId, currentFilterName);
         },
       ),
     );
@@ -292,10 +295,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                     padding: const EdgeInsets.only(left: Constants.sectionMarginX, right: Constants.sectionMarginX, bottom: Constants.listGap),
                     child: IndexCardItemCard(
                       indexCard: indexCard,
-                      /*onChanged: (card) {
-                        // Update card on module internally without saving to disc (already done in internal dialog)
-                        module.cards[card.id] = card;
-                      },*/
+                      onEditPressed: (card) => _openCardEditor(_moduleId!, card),
                     ),
                   );
                 }
