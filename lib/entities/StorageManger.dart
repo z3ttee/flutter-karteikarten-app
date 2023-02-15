@@ -56,7 +56,7 @@ class StorageManager {
       // Loop through cards in decoded json map
       for (var entity in rawMapCards) {
         // Instantiate new card
-        Card y = Card(entity['question'], entity['answer']);
+        IndexCard y = IndexCard(entity['question'], entity['answer']);
         y.id = entity['id'];
         y.lastCorrect = entity['lastCorrect'];
 
@@ -83,7 +83,7 @@ class StorageManager {
     //Check if the cards of a module schould be overwritten
     if(!overwriteCards) {
       //get current cards
-      Map<String, Card>? moduleCards = currentData[module.id]?.cards;
+      Map<String, IndexCard>? moduleCards = currentData[module.id]?.cards;
       if(!(moduleCards == null)){
         //Add old cards to current module
         currentData[module.id]!.cards = moduleCards;
@@ -96,7 +96,7 @@ class StorageManager {
   }
 
   /// Save a single card on a module. If the card does not exist on the module, it will be created. Otherwise the card is updated.
-  Future<bool> saveCard(String moduleId, Card card) async {
+  Future<bool> saveCard(String moduleId, IndexCard card) async {
     //retrieve whole Data
     Map<String, Module> currentData = await readAll();
     //Save the Card in the Module
@@ -126,7 +126,7 @@ class StorageManager {
       var correctCardsCounter = 0;
 
       for (int j = 0; j < maxCards; j++) {
-        Card ddd = Card("question $j", "answer $j");
+        IndexCard ddd = IndexCard("question $j", "answer $j");
         ddd.lastCorrect = Random().nextBool();
         if(ddd.lastCorrect) correctCardsCounter++;
         x[zzz.id]?.cards[ddd.id] = ddd;

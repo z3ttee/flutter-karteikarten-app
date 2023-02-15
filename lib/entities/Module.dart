@@ -6,15 +6,15 @@ class Module{
   String name = "";
   String? description = "";
   String id = "";
-  Map<String,Card> cards = {};
+  Map<String,IndexCard> cards = {};
   int correctCards = 0;
   int iterations = 0;
 
-  void addCard(Card card){
+  void addCard(IndexCard card){
     cards[card.id]= card;
   }
 
-  Map<String,Card> getCards(){
+  Map<String,IndexCard> getCards(){
     return cards;
   }
 
@@ -37,7 +37,7 @@ class Module{
          description= json['description'],
          id = json['id'],
          iterations= json['iterations'],
-         cards = Card.fromJson(json['cards'])as Map<String,Card>;
+         cards = IndexCard.fromJson(json['cards'])as Map<String,IndexCard>;
       /*
   {
     Module module = Module(json['name'], json['description']);

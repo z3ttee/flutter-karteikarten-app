@@ -9,22 +9,22 @@ class CardsManager{
     _storageManager = StorageManager();
   }
 
-  Future<List<Card>> getAllCards(String moduleId) async {
+  Future<List<IndexCard>> getAllCards(String moduleId) async {
     Map<String,Module>? currentData = await _storageManager.readAll();
 
-    Map<String, Card> cards = currentData[moduleId]!.cards;
-    List<Card> result = [];
+    Map<String, IndexCard> cards = currentData[moduleId]!.cards;
+    List<IndexCard> result = [];
     cards.forEach((key, value) {
       result.add(value);
     });
     return result;
   }
 
-  Future<List<Card>> getWrongCards(String moduleId) async {
+  Future<List<IndexCard>> getWrongCards(String moduleId) async {
     Map<String,Module>? currentData = await _storageManager.readAll();
 
-    Map<String, Card> cards = currentData[moduleId]!.cards;
-    List<Card> result = [];
+    Map<String, IndexCard> cards = currentData[moduleId]!.cards;
+    List<IndexCard> result = [];
     cards.forEach((key, value) {
       if(!value.lastCorrect) {
         result.add(value);
@@ -33,11 +33,11 @@ class CardsManager{
     return result;
   }
 
-  Future<List<Card>> getCorrectCards(String moduleId) async {
+  Future<List<IndexCard>> getCorrectCards(String moduleId) async {
     Map<String,Module>? currentData = await _storageManager.readAll();
 
-    Map<String, Card> cards = currentData[moduleId]!.cards;
-    List<Card> result = [];
+    Map<String, IndexCard> cards = currentData[moduleId]!.cards;
+    List<IndexCard> result = [];
     cards.forEach((key, value) {
       if(value.lastCorrect) {
         result.add(value);

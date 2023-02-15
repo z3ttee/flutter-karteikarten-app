@@ -1,18 +1,18 @@
 import 'package:uuid/uuid.dart';
 
-class Card{
+class IndexCard{
 
   String question = "";
   String answer = "";
   bool lastCorrect = false;
   String id = "";
 
-  Card(this.question , this.answer){
+  IndexCard(this.question , this.answer){
     const uuid = Uuid();
     id = uuid.v4();
   }
 
-   Card.fromJson(Map<String,dynamic> json):
+   IndexCard.fromJson(Map<String,dynamic> json):
          id = json['id'],
          answer = json['answer'],
          question = json['question'],
