@@ -1,7 +1,6 @@
 import 'package:uuid/uuid.dart';
 
 class IndexCard{
-
   String question = "";
   String answer = "";
   bool lastCorrect = false;

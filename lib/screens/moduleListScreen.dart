@@ -151,10 +151,10 @@ class _ModuleListState extends State<ModuleListScreen> {
 
       return Padding(
         padding: EdgeInsets.only(
-            left: 12,
-            right: 12,
-            top: (index == 0) ? 12 : 0,
-            bottom: (index == maxIndex) ? 96 : 0),
+            left: Constants.sectionMarginX,
+            right: Constants.sectionMarginX,
+            top: (index == 0) ? 0 : Constants.listGap,
+            bottom: (index == maxIndex) ? Constants.bottomPaddingFab : 0),
         child: ModuleItemCard(
           module: module,
           filled: true,

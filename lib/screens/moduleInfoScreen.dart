@@ -1,19 +1,25 @@
 
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
+import 'package:flutter_karteikarten_app/entities/Card.dart';
+import 'package:flutter_karteikarten_app/entities/CardsManager.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/routes.dart';
-import 'package:flutter_karteikarten_app/sections/moduleStatistics/moduleStatisticsSection.dart';
+import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleListFilterSection.dart';
+import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleStatisticsSection.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
+import 'package:flutter_karteikarten_app/widgets/cards/indexCardItemCard.dart';
 import 'package:go_router/go_router.dart';
 import '../entities/Module.dart';
 
-class ModuleInfoArguments {
-  final Module module;
+class ModuleInfoData {
+  final Module? module;
+  final List<IndexCard> indexCards;
 
-  ModuleInfoArguments(this.module);
+  ModuleInfoData(this.module, this.indexCards);
 }
 
 class ModuleInfoScreen extends StatefulWidget {
@@ -32,37 +38,57 @@ class ModuleInfoScreen extends StatefulWidget {
 }
 
 class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
-  late Future<Module?> _module;
-  List<String> _filters = [];
+  Future<ModuleInfoData?>? _data;
+
+  String _activeFilter = Constants.filterAllName;
+  CardsManager cardsManager = CardsManager();
+
+
 
   _openModuleEditor() {
 
   }
 
-  _addFilter(String name) {
-    List<String> filtersCopy = _filters;
-    filtersCopy.add(name);
+  _openCardEditor([IndexCard? indexCard]) {
 
+  }
+
+  _setFilter(String name) {
     setState(() {
-      _filters = filtersCopy;
+      _activeFilter = name;
     });
   }
 
-  _removeFilter(String name) {
-    List<String> filtersCopy = _filters;
-    filtersCopy.remove(name);
+  _fetchData() {
+    if(kDebugMode) print("[ModuleInfoScreen] Loading module and cards");
 
-    setState(() {
-      _filters = filtersCopy;
+    return Future.delayed(const Duration(milliseconds: 300), () async {
+      var moduleId = widget.activatedRoute.params["moduleId"];
+      var module = await _fetchModule(moduleId);
+      var cards = await _fetchCards(moduleId);
+      var data = ModuleInfoData(module, cards);
+
+      return data;
+    }).onError((error, stackTrace) {
+      Snackbars.message("Ein unerwarteter Fehler ist aufgetreten.", context);
+      return ModuleInfoData(null, []);
     });
   }
-  
-  _toggleFilter(bool selected, String name) {
-    if(selected) {
-      _addFilter(name);
-    } else {
-      _removeFilter(name);
-    }
+
+  Future<List<IndexCard>> _fetchCards(String? moduleId) {
+    if(kDebugMode) print("[ModuleInfoScreen] Loading cards using filter: \"$_activeFilter\"");
+
+    return Future.delayed(const Duration(milliseconds: 1), () {
+      if(_activeFilter == Constants.filterAllName) {
+        return cardsManager.getAllCards(moduleId);
+      } else if(_activeFilter == Constants.filterCorrectName) {
+        return cardsManager.getCorrectCards(moduleId);
+      } else if(_activeFilter == Constants.filterWrongName) {
+        return cardsManager.getWrongCards(moduleId);
+      } else {
+        return [];
+      }
+    });
   }
 
   _navigateHome() {
@@ -78,50 +104,41 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   }
 
   Future<Module?> _fetchModule(String? moduleId) {
-    StorageManager manager = StorageManager();
-
     if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
-    if(moduleId == null) return Future(() => null);
-    return manager.readOneModule(moduleId).then((value) {
-      if (kDebugMode) print("[ModuleInfoScreen] Loaded module with id '$moduleId': \"${value?.name}\"");
-      return value;
-    }).onError((error, stackTrace) {
-      if (kDebugMode) print("[ModuleInfoScreen] Failed loading module with id '$moduleId'");
-      Snackbars.message("Ein unerwarteter Fehler ist aufgetreten.", context);
-      return null;
-    });
+
+    StorageManager manager = StorageManager();
+    return manager.readOneModule(moduleId);
   }
+
 
   @override
   void initState() {
     super.initState();
 
-    var moduleId = widget.activatedRoute.params["moduleId"];
-    _module = _fetchModule(moduleId);
-
-    _filters.add(Constants.filterAllName);
+    _data = _fetchData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: FutureBuilder<Module?>(
-        future: _module,
+      child: FutureBuilder<ModuleInfoData?>(
+        future: _data,
         builder: (context, snapshot) {
           if(snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator(),);
           }
 
-          return snapshot.data == null ? _renderErrorScreen() : _renderInfoScreen(snapshot.data!);
+          print("Rebuilt UI");
+          return snapshot.data == null || snapshot.data?.module == null ? _renderErrorScreen() : _renderInfoScreen(snapshot.data!);
         }
       ),
     );
   }
 
-  Widget _renderInfoScreen(Module module) {
+  Widget _renderInfoScreen(ModuleInfoData data) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(module.name),
+        title: Text(data.module!.name),
         centerTitle: true,
         leading: BackButton(
           onPressed: () => _navigateHome(),
@@ -136,44 +153,58 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           )
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
-              child: ModuleStatisticsSection(module: module,),
-            ),
-            SizedBox(
-              height: 32,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  const SizedBox(width: Constants.sectionMarginX+4,),
-                  FilterChip(
-                    label: const Text(Constants.filterAllName),
-                    selected: _filters.contains(Constants.filterAllName),
-                    onSelected: (selected) => _toggleFilter(selected, Constants.filterAllName)
+      body: ListView.builder(
+            itemCount: (data.indexCards.length) + 4,
+            itemBuilder: (context, itemIndex) {
+              if(itemIndex == 0) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
+                  child: ModuleStatisticsSection(module: data.module!,),
+                );
+              }
+
+              if(itemIndex == 1) {
+                return ModuleListFilterSection(
+                  onFilterSelected: (name) => _setFilter(name),
+                  selectedFilter: _activeFilter,
+                );
+              }
+
+              if(itemIndex == 2) {
+                var actualListSize = data.indexCards.length;
+                if(data.module == null || actualListSize <= 0) {
+                  return ErrorCard(
+                    title: "Keine Karten gefunden",
+                    message: "Sobald du eine Karteikarte angelegt hast, wird diese hier angezeigt.",
+                    actions: [
+                      TextButton.icon(
+                        onPressed: () => _openCardEditor(),
+                        label: const Text("Erste Karteikarte erstellen"),
+                        icon: const Icon(Icons.add_circle_outline),
+                      ),
+                    ],
+                  );
+                }
+
+                return const SizedBox(height: Constants.sectionMarginY,);
+              }
+
+              var index = itemIndex - 3;
+
+              if(index <= (data.indexCards.length - 1)) {
+                var indexCard = data.indexCards.elementAt(index);
+                return Padding(
+                  padding: const EdgeInsets.only(left: Constants.sectionMarginX, right: Constants.sectionMarginX, bottom: Constants.listGap),
+                  child: IndexCardItemCard(
+                    indexCard: indexCard,
+                    onEditPressed: (indexCard) => _openCardEditor(indexCard),
                   ),
-                  const SizedBox(width: Constants.listGap,),
-                  FilterChip(
-                      label: const Text(Constants.filterCorrectName),
-                      selected: _filters.contains(Constants.filterCorrectName),
-                      onSelected: (selected) => _toggleFilter(selected, Constants.filterCorrectName)
-                  ),
-                  const SizedBox(width: Constants.listGap,),
-                  FilterChip(
-                      label: const Text(Constants.filterWrongName),
-                      selected: _filters.contains(Constants.filterWrongName),
-                      onSelected: (selected) => _toggleFilter(selected, Constants.filterWrongName)
-                  ),
-                  const SizedBox(width: Constants.sectionMarginX+4,),
-                ],
-              ),
-            ),
-          ]
+                );
+              }
+
+              return const SizedBox(height: Constants.bottomPaddingFab,);
+            }
         ),
-      ),
     );
   }
 

@@ -25,6 +25,9 @@ class MyApp extends StatelessWidget {
         colorSchemeSeed: Colors.orange,
         // Use Material Design 3 typography settings
         typography: Typography.material2021(),
+        cardTheme: const CardTheme(
+          margin: EdgeInsets.zero,
+        )
       ),
       // Dark-Theme settings
       darkTheme: ThemeData(
@@ -35,6 +38,9 @@ class MyApp extends StatelessWidget {
         colorSchemeSeed: Colors.purple,
         // Use Material Design 3 typography settings
         typography: Typography.material2021(),
+        cardTheme: const CardTheme(
+          margin: EdgeInsets.zero,
+        ),
       ),
       // Pick light or dark theme based on device's settings
       themeMode: ThemeMode.system,

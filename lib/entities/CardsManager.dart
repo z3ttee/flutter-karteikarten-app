@@ -9,7 +9,8 @@ class CardsManager{
     _storageManager = StorageManager();
   }
 
-  Future<List<IndexCard>> getAllCards(String moduleId) async {
+  Future<List<IndexCard>> getAllCards(String? moduleId) async {
+    if(moduleId == null) return [];
     Map<String,Module>? currentData = await _storageManager.readAll();
 
     Map<String, IndexCard> cards = currentData[moduleId]!.cards;
@@ -20,7 +21,8 @@ class CardsManager{
     return result;
   }
 
-  Future<List<IndexCard>> getWrongCards(String moduleId) async {
+  Future<List<IndexCard>> getWrongCards(String? moduleId) async {
+    if(moduleId == null) return [];
     Map<String,Module>? currentData = await _storageManager.readAll();
 
     Map<String, IndexCard> cards = currentData[moduleId]!.cards;
@@ -33,7 +35,8 @@ class CardsManager{
     return result;
   }
 
-  Future<List<IndexCard>> getCorrectCards(String moduleId) async {
+  Future<List<IndexCard>> getCorrectCards(String? moduleId) async {
+    if(moduleId == null) return [];
     Map<String,Module>? currentData = await _storageManager.readAll();
 
     Map<String, IndexCard> cards = currentData[moduleId]!.cards;

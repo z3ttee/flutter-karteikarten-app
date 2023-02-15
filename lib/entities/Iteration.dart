@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:flutter_karteikarten_app/entities/CardsManager.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';

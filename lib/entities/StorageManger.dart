@@ -80,7 +80,7 @@ class StorageManager {
   }
 
   /// Save a single module to shared preferences. Setting overwriteCards=true overwrites attached cards.
-  Future<bool> saveModule(Module module, {bool overwriteCards =false}) async {
+  Future<bool> saveModule(Module module, {bool overwriteCards = false}) async {
     //Read the current data
     Map<String, Module> currentData = await readAll() ;
     //Check if the cards of a module schould be overwritten
@@ -108,7 +108,8 @@ class StorageManager {
     return await saveAll(currentData);
   }
 
-  Future<Module?> readOneModule(String moduleId) async {
+  Future<Module?> readOneModule(String? moduleId) async {
+    if(moduleId == null) return null;
     //retrieve whole Data
     Map<String, Module> currentData = await readAll();
     //get the module
