@@ -26,6 +26,7 @@ class Module{
       'name' : name,
       'description': description,
       'id' : id,
+      'iterations': iterations,
       'cards' : list
     });
     return result;
@@ -35,6 +36,7 @@ class Module{
          name = json['name'],
          description= json['description'],
          id = json['id'],
+         iterations= json['iterations'],
          cards = Card.fromJson(json['cards'])as Map<String,Card>;
       /*
   {
