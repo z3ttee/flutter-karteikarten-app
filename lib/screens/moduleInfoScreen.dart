@@ -33,9 +33,36 @@ class ModuleInfoScreen extends StatefulWidget {
 
 class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   late Future<Module?> _module;
+  List<String> _filters = [];
 
   _openModuleEditor() {
 
+  }
+
+  _addFilter(String name) {
+    List<String> filtersCopy = _filters;
+    filtersCopy.add(name);
+
+    setState(() {
+      _filters = filtersCopy;
+    });
+  }
+
+  _removeFilter(String name) {
+    List<String> filtersCopy = _filters;
+    filtersCopy.remove(name);
+
+    setState(() {
+      _filters = filtersCopy;
+    });
+  }
+  
+  _toggleFilter(bool selected, String name) {
+    if(selected) {
+      _addFilter(name);
+    } else {
+      _removeFilter(name);
+    }
   }
 
   _navigateHome() {
@@ -56,7 +83,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
     if(moduleId == null) return Future(() => null);
     return manager.readOneModule(moduleId).then((value) {
-      if (kDebugMode) print("[ModuleInfoScreen] Loaded module with id '$moduleId'");
+      if (kDebugMode) print("[ModuleInfoScreen] Loaded module with id '$moduleId': \"${value?.name}\"");
       return value;
     }).onError((error, stackTrace) {
       if (kDebugMode) print("[ModuleInfoScreen] Failed loading module with id '$moduleId'");
@@ -71,6 +98,8 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
     var moduleId = widget.activatedRoute.params["moduleId"];
     _module = _fetchModule(moduleId);
+
+    _filters.add(Constants.filterAllName);
   }
 
   @override
@@ -79,7 +108,6 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
       child: FutureBuilder<Module?>(
         future: _module,
         builder: (context, snapshot) {
-
           if(snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator(),);
           }
@@ -108,13 +136,43 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           )
         ],
       ),
-      body: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
-            child: ModuleStatisticsSection(module: module,),
-          )
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
+              child: ModuleStatisticsSection(module: module,),
+            ),
+            SizedBox(
+              height: 32,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  const SizedBox(width: Constants.sectionMarginX+4,),
+                  FilterChip(
+                    label: const Text(Constants.filterAllName),
+                    selected: _filters.contains(Constants.filterAllName),
+                    onSelected: (selected) => _toggleFilter(selected, Constants.filterAllName)
+                  ),
+                  const SizedBox(width: Constants.listGap,),
+                  FilterChip(
+                      label: const Text(Constants.filterCorrectName),
+                      selected: _filters.contains(Constants.filterCorrectName),
+                      onSelected: (selected) => _toggleFilter(selected, Constants.filterCorrectName)
+                  ),
+                  const SizedBox(width: Constants.listGap,),
+                  FilterChip(
+                      label: const Text(Constants.filterWrongName),
+                      selected: _filters.contains(Constants.filterWrongName),
+                      onSelected: (selected) => _toggleFilter(selected, Constants.filterWrongName)
+                  ),
+                  const SizedBox(width: Constants.sectionMarginX+4,),
+                ],
+              ),
+            ),
+          ]
+        ),
       ),
     );
   }
