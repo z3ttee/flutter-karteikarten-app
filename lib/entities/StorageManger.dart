@@ -36,7 +36,10 @@ class StorageManager {
     // If not return the empty instance from above
     if(modulesAsString == null){
       // in debug mode, create a dummy list
-      if(kDebugMode){return getDummy(dummyElements);}
+      if(kDebugMode){
+        var dummies = getDummy(dummyElements);
+        return saveAll(dummies).then((value) => dummies);
+      }
       // If not in debug mode, return empty list
       return result;
     }

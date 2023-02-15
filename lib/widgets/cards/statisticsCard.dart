@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/widgets/cards/FilledCard.dart';
 import '../../constants.dart';
 
 class StatCard extends StatelessWidget {
@@ -21,7 +22,7 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      child: Card(
+      child: FilledCard(
         elevation: 2,
         child: Padding(
           padding: const EdgeInsets.all(Constants.cardInnerPadding - 3),

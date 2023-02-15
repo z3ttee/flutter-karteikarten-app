@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/utils/calc.dart';
+import 'package:flutter_karteikarten_app/widgets/cards/FilledCard.dart';
 import 'package:flutter_karteikarten_app/widgets/dividers/dotDivider.dart';
 
 class ModuleItemCard extends StatelessWidget {
@@ -27,19 +28,7 @@ class ModuleItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => onPressed?.call(module),
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          // Only show a border, if card type is not "filled"
-            side: BorderSide(
-                width: filled ? 0 : 1,
-                color: filled ? Colors.transparent : Theme.of(context).colorScheme.outline
-            ),
-            borderRadius: const BorderRadius.all(Radius.circular(12))
-        ),
-        color: filled ? Theme.of(context).colorScheme.surfaceVariant : Theme.of(context).colorScheme.surface,
-        shadowColor: Theme.of(context).colorScheme.shadow,
-        surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
+      child: FilledCard(
         child: Padding(
           padding: const EdgeInsets.all(Constants.cardInnerPadding),
           child: Column(
