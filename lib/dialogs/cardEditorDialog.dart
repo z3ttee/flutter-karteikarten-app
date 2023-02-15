@@ -4,28 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/forms/cardForm.dart';
-import 'package:flutter_karteikarten_app/forms/moduleForm.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
-
-enum CardEditorMode {
-  create("create"),
-  edit("edit");
-
-  final String value;
-  const CardEditorMode(this.value);
-}
 
 class CardEditorDialog extends StatefulWidget {
   final IndexCard? indexCard;
-  final CardEditorMode? mode;
   final Function? onDidChange;
   final String moduleId;
 
   const CardEditorDialog({
     super.key,
-    this.mode = CardEditorMode.create,
     this.onDidChange,
-    this.indexCard, required this.moduleId
+    this.indexCard,
+    required this.moduleId
   });
 
   @override
@@ -56,13 +46,13 @@ class _CardEditorState extends State<CardEditorDialog> {
       }
 
       IndexCard card;
-      // Update the module if editor is in edit mode
-      if(widget.mode == CardEditorMode.edit) {
+      // Update the card if a valid index card was passed to dialog
+      if(widget.indexCard != null) {
         card = widget.indexCard ?? IndexCard(nameController.value.text, descriptionController.value.text);
         card.question = nameController.value.text;
         card.answer = descriptionController.value.text;
       } else {
-        // Otherwise create new module
+        // Otherwise create new card
         card = IndexCard(nameController.value.text, descriptionController.value.text);
       }
 
@@ -75,7 +65,7 @@ class _CardEditorState extends State<CardEditorDialog> {
 
           widget.onDidChange?.call();
           _closeDialog();
-          Snackbars.message("Die Karte wurde ${widget.mode == CardEditorMode.edit ? 'bearbeitet' : 'erstellt'}.", context);
+          Snackbars.message("Die Karte wurde ${widget.indexCard != null ? 'bearbeitet' : 'erstellt'}.", context);
         } else {
           Snackbars.message("Die Karte konnte nicht gespeichert werden", context);
         }
@@ -109,7 +99,7 @@ class _CardEditorState extends State<CardEditorDialog> {
     return Dialog.fullscreen(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.mode == CardEditorMode.edit ? "Karte bearbeiten" : "Neue Karte erstellen"),
+          title: Text(widget.indexCard != null ? "Karte bearbeiten" : "Neue Karte erstellen"),
           leading: IconButton(onPressed: () => _closeDialog(), icon: const Icon(Icons.close)),
           centerTitle: true,
           actions: [

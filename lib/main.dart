@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/behaviours/pointerScrollBehaviour.dart';
 import 'package:flutter_karteikarten_app/routes.dart';
@@ -35,7 +34,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         // Material Design 3 verwenden
         useMaterial3: true,
-        colorSchemeSeed: Colors.purple,
+        colorSchemeSeed: Colors.orange,
         // Use Material Design 3 typography settings
         typography: Typography.material2021(),
         cardTheme: const CardTheme(

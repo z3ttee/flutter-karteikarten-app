@@ -22,24 +22,27 @@ class ErrorCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    // Show a title
-                    Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall?.merge(TextStyle(
-                      fontWeight: FontWeight.w400,
-                      letterSpacing: Theme.of(context).textTheme.labelLarge?.letterSpacing,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    )),),
-                    // Add spacing between title and message
-                    const SizedBox(height: 16,),
-                    // Show a message to the error with a line height of 1.5 dp
-                    Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium?.merge(const TextStyle(
-                        height: 1.5
-                    )),),
-                  ],
+            SizedBox(
+              width: double.infinity,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Show a title
+                      Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall?.merge(TextStyle(
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: Theme.of(context).textTheme.labelLarge?.letterSpacing,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      )),),
+                      // Add spacing between title and message
+                      const SizedBox(height: 16,),
+                      // Show a message to the error with a line height of 1.5 dp
+                      Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium?.merge(const TextStyle(
+                          height: 1.5
+                      )),),
+                    ],
+                  ),
                 ),
               ),
             ),
