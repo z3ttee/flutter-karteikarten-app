@@ -82,7 +82,7 @@ class _ModuleListState extends State<ModuleListScreen> {
         builder: (context) {
           return ModuleEditorDialog(
             module: module,
-            onDidChange: () {
+            onDidChange: (module) {
               if(kDebugMode) {
                 print("[ModuleListScreen] Module value changed");
               }

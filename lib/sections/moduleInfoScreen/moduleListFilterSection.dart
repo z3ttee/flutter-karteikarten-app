@@ -18,7 +18,7 @@ class ModuleListFilterSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -33,21 +33,21 @@ class ModuleListFilterSection extends StatelessWidget {
               children: [
                 const SizedBox(width: Constants.sectionMarginX+4,),
                 ChoiceChip(
-                    label: const Text(Constants.filterAllName),
-                    selected: selectedFilter == Constants.filterAllName,
-                    onSelected: (selected) => _setFilter(Constants.filterAllName)
+                    label: const Text(Constants.filterAll),
+                    selected: selectedFilter == Constants.filterAll,
+                    onSelected: (selected) => _setFilter(Constants.filterAll)
                 ),
                 const SizedBox(width: Constants.listGap,),
                 ChoiceChip(
-                    label: const Text(Constants.filterCorrectName),
-                    selected: selectedFilter == Constants.filterCorrectName,
-                    onSelected: (selected) => _setFilter(Constants.filterCorrectName)
+                    label: const Text(Constants.filterCorrect),
+                    selected: selectedFilter == Constants.filterCorrect,
+                    onSelected: (selected) => _setFilter(Constants.filterCorrect)
                 ),
                 const SizedBox(width: Constants.listGap,),
                 ChoiceChip(
-                    label: const Text(Constants.filterWrongName),
-                    selected: selectedFilter == Constants.filterWrongName,
-                    onSelected: (selected) => _setFilter(Constants.filterWrongName)
+                    label: const Text(Constants.filterWrong),
+                    selected: selectedFilter == Constants.filterWrong,
+                    onSelected: (selected) => _setFilter(Constants.filterWrong)
                 ),
                 const SizedBox(width: Constants.sectionMarginX+4,),
               ],

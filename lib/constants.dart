@@ -13,9 +13,9 @@ class Constants {
   static const double sectionMarginY = 10;
   static const double sectionMarginX = 16;
 
-  static const String filterAllName = "Alle";
-  static const String filterWrongName = "Falsch";
-  static const String filterCorrectName = "Korrekt";
+  static const String filterAll = "Alle";
+  static const String filterWrong = "Falsch";
+  static const String filterCorrect = "Korrekt";
 
   static const String notifierModuleList = "ModuleListNotifier";
 }

@@ -8,7 +8,7 @@ import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 
 class CardEditorDialog extends StatefulWidget {
   final IndexCard? indexCard;
-  final Function? onDidChange;
+  final Function(IndexCard)? onDidChange;
   final String moduleId;
 
   const CardEditorDialog({
@@ -63,7 +63,7 @@ class _CardEditorState extends State<CardEditorDialog> {
             print("[CardEditorDialog] Saved card: ${card.toJson()}");
           }
 
-          widget.onDidChange?.call();
+          widget.onDidChange?.call(card);
           _closeDialog();
           Snackbars.message("Die Karte wurde ${widget.indexCard != null ? 'bearbeitet' : 'erstellt'}.", context);
         } else {

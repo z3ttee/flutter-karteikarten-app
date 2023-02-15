@@ -8,7 +8,7 @@ import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 
 class ModuleEditorDialog extends StatefulWidget {
   final Module? module;
-  final Function? onDidChange;
+  final Function(Module)? onDidChange;
 
   const ModuleEditorDialog({
     super.key,
@@ -61,7 +61,7 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
             print("[ModuleEditorDialog] Saved module: ${module.toJson()}");
           }
 
-          widget.onDidChange?.call();
+          widget.onDidChange?.call(module);
           _closeDialog();
           Snackbars.message("Das Modul wurde ${widget.module != null ? 'bearbeitet' : 'erstellt'}.", context);
         } else {

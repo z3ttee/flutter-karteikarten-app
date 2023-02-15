@@ -15,6 +15,7 @@ import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleStatist
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/indexCardItemCard.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rxdart/rxdart.dart';
 import '../entities/Module.dart';
 
 class ModuleInfoData {
@@ -41,21 +42,84 @@ class ModuleInfoScreen extends StatefulWidget {
 
 class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
-  String? _moduleId;
-  late Future<Module?> _module;
-  Future<List<IndexCard>>? _cards;
+  late final StreamController<Module?> moduleStreamController;
+  late final StreamController<List<IndexCard>> cardStreamController;
+  late final StreamController<String> filterStreamController;
 
-  String _activeFilter = Constants.filterAllName;
-  CardsManager cardsManager = CardsManager();
+  late final Stream<Module?> moduleStream;
+  late final Stream<List<IndexCard>> cardStream;
+  late final Stream<String> filterStream;
+
+  late final StreamSubscription<String> filterSubscription;
+
+  late final String? _moduleId;
+  final StorageManager storageManager = StorageManager();
+  final CardsManager cardsManager = CardsManager();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Extract module id from route
+    _moduleId = widget.activatedRoute.params["moduleId"];
+
+    // Initialize stream controllers for updating data
+    moduleStreamController = BehaviorSubject();
+    cardStreamController = BehaviorSubject();
+    filterStreamController = BehaviorSubject();
+
+    // Initialize stream to listen to data changes
+    moduleStream = moduleStreamController.stream;
+    cardStream = cardStreamController.stream;
+    filterStream = filterStreamController.stream;
+
+    // Fetch module and push result to stream
+    _fetchAndPushModule(_moduleId);
+
+    // Fetch cards and push result to stream
+    _fetchAndPushCards(_moduleId, Constants.filterAll);
+
+    // Subscribe to changes to the filter value and re-fetch cards
+    filterSubscription = filterStream.listen((filterName) {
+      _fetchAndPushCards(_moduleId, filterName);
+    });
+  }
+
+  _fetchAndPushModule(String? moduleId) {
+    if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
+
+    return Future<Module?>.delayed(const Duration(milliseconds: 150), () => storageManager.readOneModule(moduleId)).then((value) {
+      moduleStreamController.add(value);
+    });
+  }
+
+  _fetchAndPushCards(String? moduleId, String appliedFilter) {
+    if(kDebugMode) print("[ModuleInfoScreen] Loading cards using filter: \"$appliedFilter\"");
+
+    return Future<List<IndexCard>>.delayed(const Duration(milliseconds: 250), () {
+      if(appliedFilter == Constants.filterAll) {
+        return cardsManager.getAllCards(moduleId);
+      } else if(appliedFilter == Constants.filterCorrect) {
+        return cardsManager.getCorrectCards(moduleId);
+      } else if(appliedFilter == Constants.filterWrong) {
+        return cardsManager.getWrongCards(moduleId);
+      } else {
+        return [];
+      }
+    }).then((value) {
+      // Push to stream on success
+      cardStreamController.add(value);
+    });
+  }
 
   _openModuleEditor(Module? module) {
     showDialog(
       context: context,
       builder: (ctx) => ModuleEditorDialog(
         module: module,
-        onDidChange: () {
-          _rerenderPage();
+        onDidChange: (module) {
           Notifier.notify(Constants.notifierModuleList);
+          moduleStreamController.add(module);
         },
       ),
     );
@@ -67,49 +131,18 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
       builder: (ctx) => CardEditorDialog(
         moduleId: moduleId,
         indexCard: indexCard,
-        onDidChange: () => _rerenderPage(),
+        onDidChange: (card) {
+          // TODO
+        },
       ),
     );
   }
 
-  _setFilter(String name) {
-    setState(() {
-      _activeFilter = name;
-    });
-  }
-
   _resetFilter() {
-    _setFilter(Constants.filterAllName);
+    filterStreamController.add(Constants.filterAll);
   }
 
-  _rerenderPage() {
-    setState(() {});
-  }
 
-  Future<List<IndexCard>> _fetchCards(String? moduleId) {
-    if(kDebugMode) print("[ModuleInfoScreen] Loading cards using filter: \"$_activeFilter\"");
-
-    return Future.delayed(const Duration(milliseconds: 250), () {
-      if(_activeFilter == Constants.filterAllName) {
-        return cardsManager.getAllCards(moduleId);
-      } else if(_activeFilter == Constants.filterCorrectName) {
-        return cardsManager.getCorrectCards(moduleId);
-      } else if(_activeFilter == Constants.filterWrongName) {
-        return cardsManager.getWrongCards(moduleId);
-      } else {
-        return [];
-      }
-    });
-  }
-
-  Future<Module?> _fetchModule() {
-    if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$_moduleId'");
-
-    StorageManager manager = StorageManager();
-    return Future.delayed(const Duration(milliseconds: 150), () {
-      return manager.readOneModule(_moduleId);
-    });
-  }
 
   _navigateHome() {
     if(context.canPop()) {
@@ -124,23 +157,26 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-
-    _moduleId = widget.activatedRoute.params["moduleId"];
-    _module = _fetchModule();
-  }
-
-  @override
   void dispose() {
     super.dispose();
+    // Close streams to free resources
+    moduleStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed module stream.");
+    });
+    cardStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed card stream.");
+    });
+    filterStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: FutureBuilder<Module?>(
-        future: _module,
+      child: StreamBuilder(
+        stream: moduleStream,
+        initialData: null,
         builder: (context, snapshot) {
           if(snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(),);
@@ -154,7 +190,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   Widget _renderInfoScreen(Module module) {
     return Scaffold(
-      // Render appbar with back button and module name as title
+      /// Render appbar with back button and module name as title
       appBar: AppBar(
         title: Text(module.name),
         centerTitle: true,
@@ -171,18 +207,18 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           )
         ],
       ),
-      // Render floating action button to create new cards
+      /// Render floating action button to create new cards
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openCardEditor(module.id),
         child: const Icon(Icons.add),
       ),
-      // Render body containing the contents of the page
-      body: FutureBuilder(
-        future: _fetchCards(module.id),
+      /// Render body containing the contents of the page
+      body: StreamBuilder<List<IndexCard>>(
+        stream: cardStream,
         builder: (context, snapshot) {
           var indexCards = snapshot.data ?? [];
 
-          // If the cards are still loading, show stats and filter together with a loading indicator
+          /// If the cards are still loading, show stats and filter together with a loading indicator
           if(snapshot.connectionState == ConnectionState.waiting) {
             return ListView(
               children: [
@@ -193,7 +229,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
             );
           }
 
-          // If done loading, render the actual content
+          /// If done loading, render the actual content
           return ListView.builder(
               itemCount: (indexCards.length) + 4,
               itemBuilder: (context, itemIndex) {
@@ -256,7 +292,10 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                     padding: const EdgeInsets.only(left: Constants.sectionMarginX, right: Constants.sectionMarginX, bottom: Constants.listGap),
                     child: IndexCardItemCard(
                       indexCard: indexCard,
-                      onEditPressed: (indexCard) => _openCardEditor(module.id, indexCard),
+                      /*onChanged: (card) {
+                        // Update card on module internally without saving to disc (already done in internal dialog)
+                        module.cards[card.id] = card;
+                      },*/
                     ),
                   );
                 }
@@ -265,7 +304,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                 return const SizedBox(height: Constants.bottomPaddingFab,);
               }
           );
-        }
+        },
       ),
     );
   }
@@ -299,9 +338,14 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   /// Render function returning the filter section
   _renderFilterSection() {
-    return ModuleListFilterSection(
-      onFilterSelected: (name) => _setFilter(name),
-      selectedFilter: _activeFilter,
+    return StreamBuilder<String>(
+      stream: filterStream,
+      builder: (ctx, snapshot) {
+        return ModuleListFilterSection(
+          onFilterSelected: (name) => filterStreamController.add(name),
+          selectedFilter: snapshot.data ?? Constants.filterAll,
+        );
+      }
     );
   }
 
