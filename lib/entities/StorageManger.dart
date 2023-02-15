@@ -47,6 +47,7 @@ class StorageManager {
     jsonRaw.forEach((key, value) {
       result[key] = Module(value['name'], value['description']);
       result[key]?.id = value['id'];
+      result[key]?.iterations = value['iterations'];
       //print(value);
       List rawMapCards = value['cards'];
       //Count the last correctly answered cards
@@ -135,6 +136,17 @@ class StorageManager {
     }
 
     return x;
+  }
+
+  void deleteOneModule(String moduleId)async{
+    Map<String, Module> currentData = await readAll();
+    currentData.remove(moduleId);
+    saveAll(currentData);
+  }
+  void deleteOneCard(String moduleId, String cardId)async{
+    Map<String, Module> currentData = await readAll();
+    currentData[moduleId]!.cards.remove(cardId);
+    saveAll(currentData);
   }
 
   Future<Map<String, Module>> getDummyModules(int y) {
