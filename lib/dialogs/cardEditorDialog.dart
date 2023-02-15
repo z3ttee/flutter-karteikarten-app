@@ -37,12 +37,12 @@ class _CardEditorState extends State<CardEditorDialog> {
     Navigator.pop(context);
   }
 
-  _saveModule() {
+  _saveCard() {
     if(_formKey.currentState?.validate() ?? false) {
       _setIsSaving(true);
 
       if (kDebugMode) {
-        print("[ModuleEditorDialog] Form successfully validated.");
+        print("[CardEditorDialog] Form successfully validated.");
       }
 
       IndexCard card;
@@ -105,7 +105,7 @@ class _CardEditorState extends State<CardEditorDialog> {
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: IconButton(onPressed: () => _saveModule(), icon: _isSaving ? _renderProgress() : const Icon(Icons.save)),
+              child: IconButton(onPressed: () => _saveCard(), icon: _isSaving ? _renderProgress() : const Icon(Icons.save)),
             )
           ],
         ),
@@ -134,7 +134,7 @@ class _CardEditorState extends State<CardEditorDialog> {
               Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: ElevatedButton(
-                  onPressed: () => _saveModule(),
+                  onPressed: () => _saveCard(),
                   child: _isSaving ? _renderProgress() : const Text("Speichern"),
                 ),
               )

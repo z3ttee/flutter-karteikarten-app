@@ -6,23 +6,13 @@ import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/forms/moduleForm.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 
-enum ModuleEditorMode {
-  create("create"),
-  edit("edit");
-
-  final String value;
-  const ModuleEditorMode(this.value);
-}
-
 class ModuleEditorDialog extends StatefulWidget {
   final Module? module;
-  final ModuleEditorMode? mode;
   final Function? onDidChange;
 
   const ModuleEditorDialog({
     super.key,
     this.module,
-    this.mode = ModuleEditorMode.create,
     this.onDidChange
   });
 
@@ -55,7 +45,7 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
 
       Module module;
       // Update the module if editor is in edit mode
-      if(widget.mode == ModuleEditorMode.edit) {
+      if(widget.module != null) {
         module = widget.module ?? Module(nameController.value.text, descriptionController.value.text.isEmpty ? null : descriptionController.value.text);
         module.name = nameController.value.text;
         module.description = descriptionController.value.text.isEmpty ? null : descriptionController.value.text;
@@ -73,7 +63,7 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
 
           widget.onDidChange?.call();
           _closeDialog();
-          Snackbars.message("Das Modul wurde ${widget.mode == ModuleEditorMode.edit ? 'bearbeitet' : 'erstellt'}.", context);
+          Snackbars.message("Das Modul wurde ${widget.module != null ? 'bearbeitet' : 'erstellt'}.", context);
         } else {
           Snackbars.message("Das Modul konnte nicht gespeichert werden", context);
         }
@@ -107,7 +97,7 @@ class _ModuleEditorState extends State<ModuleEditorDialog> {
     return Dialog.fullscreen(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.mode == ModuleEditorMode.edit ? "Modul bearbeiten" : "Neues Modul erstellen"),
+          title: Text(widget.module != null ? "Modul bearbeiten" : "Neues Modul erstellen"),
           leading: IconButton(onPressed: () => _closeDialog(), icon: const Icon(Icons.close)),
           centerTitle: true,
           actions: [

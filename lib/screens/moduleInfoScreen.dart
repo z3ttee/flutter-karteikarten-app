@@ -4,9 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/dialogs/cardEditorDialog.dart';
+import 'package:flutter_karteikarten_app/dialogs/moduleEditorDialog.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:flutter_karteikarten_app/entities/CardsManager.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
+import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleListFilterSection.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleStatisticsSection.dart';
@@ -41,12 +43,22 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   String? _moduleId;
   late Future<Module?> _module;
+  Future<List<IndexCard>>? _cards;
 
   String _activeFilter = Constants.filterAllName;
   CardsManager cardsManager = CardsManager();
 
-  _openModuleEditor() {
-
+  _openModuleEditor(Module? module) {
+    showDialog(
+      context: context,
+      builder: (ctx) => ModuleEditorDialog(
+        module: module,
+        onDidChange: () {
+          _rerenderPage();
+          Notifier.notify(Constants.notifierModuleList);
+        },
+      ),
+    );
   }
 
   _openCardEditor(String moduleId, [IndexCard? indexCard]) {
@@ -55,6 +67,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
       builder: (ctx) => CardEditorDialog(
         moduleId: moduleId,
         indexCard: indexCard,
+        onDidChange: () => _rerenderPage(),
       ),
     );
   }
@@ -67,6 +80,10 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   _resetFilter() {
     _setFilter(Constants.filterAllName);
+  }
+
+  _rerenderPage() {
+    setState(() {});
   }
 
   Future<List<IndexCard>> _fetchCards(String? moduleId) {
@@ -148,7 +165,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: IconButton(
-              onPressed: () => _openModuleEditor(),
+              onPressed: () => _openModuleEditor(module),
               icon: const Icon(Icons.edit)
             ),
           )

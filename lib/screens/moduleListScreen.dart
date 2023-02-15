@@ -1,3 +1,4 @@
+import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:go_router/go_router.dart';
 import "package:universal_html/html.dart" as html;
@@ -39,7 +40,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
   Future<List<Module>> _fetchModulesAsList() {
     if (kDebugMode) {
-      print("[ModuleList] Fetching modules...");
+      print("[ModuleListScreen] Fetching modules...");
     }
 
     return Future.delayed(const Duration(milliseconds: 300), () async {
@@ -59,6 +60,20 @@ class _ModuleListState extends State<ModuleListScreen> {
     // Set initial state of the widget
     // In this case, start fetching modules
     _reloadModules();
+
+    // Register notifier to receive information when a module was updated.
+    Notifier.set(Constants.notifierModuleList, () {
+      if(kDebugMode) print("[ModuleListScreen] Received notification: Updating module list.");
+      // If notification was triggered, reload all modules
+      _reloadModulesSilent();
+    });
+  }
+  
+  @override
+  void dispose() {
+    super.dispose();
+    // Unregister notifier if page is completely destroyed
+    Notifier.unset(Constants.notifierModuleList);
   }
 
   _openModuleEditor(BuildContext ctx, Module? module) {
@@ -67,7 +82,6 @@ class _ModuleListState extends State<ModuleListScreen> {
         builder: (context) {
           return ModuleEditorDialog(
             module: module,
-            mode: module == null ? ModuleEditorMode.create : ModuleEditorMode.edit,
             onDidChange: () {
               if(kDebugMode) {
                 print("[ModuleListScreen] Module value changed");
@@ -93,6 +107,13 @@ class _ModuleListState extends State<ModuleListScreen> {
         _modules = future;
       });
     });
+  }
+
+  @override
+  void deactivate() {
+    if(kDebugMode) print("[ModuleListScreen] Reactivated page. Rerendering...");
+    super.deactivate();
+    setState(() {});
   }
 
   @override

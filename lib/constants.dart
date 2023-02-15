@@ -16,4 +16,6 @@ class Constants {
   static const String filterAllName = "Alle";
   static const String filterWrongName = "Falsch";
   static const String filterCorrectName = "Korrekt";
+
+  static const String notifierModuleList = "ModuleListNotifier";
 }
