@@ -25,6 +25,16 @@ class ModuleInfoData {
   ModuleInfoData(this.module, this.indexCards);
 }
 
+class _CardListState {
+  final bool isLoading;
+  final List<IndexCard> cards;
+
+  _CardListState({
+    required this.isLoading,
+    required this.cards
+  });
+}
+
 class ModuleInfoScreen extends StatefulWidget {
   final GoRouterState activatedRoute;
 
@@ -43,11 +53,11 @@ class ModuleInfoScreen extends StatefulWidget {
 class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   late final StreamController<Module?> moduleStreamController;
-  late final StreamController<List<IndexCard>> cardStreamController;
+  late final StreamController<_CardListState> cardStreamController;
   late final StreamController<String> filterStreamController;
 
   late final Stream<Module?> moduleStream;
-  late final Stream<List<IndexCard>> cardStream;
+  late final Stream<_CardListState> cardStream;
   late final Stream<String> filterStream;
 
   late final StreamSubscription<String> filterSubscription;
@@ -57,6 +67,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   final CardsManager cardsManager = CardsManager();
 
   String currentFilterName = Constants.filterAll;
+  List<IndexCard> currentCardsState = [];
 
   @override
   void initState() {
@@ -96,10 +107,11 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     });
   }
 
-  _fetchAndPushCards(String? moduleId, String appliedFilter) {
+  _fetchAndPushCards(String? moduleId, String appliedFilter, {bool silently = false, int delay = 0}) {
     if(kDebugMode) print("[ModuleInfoScreen] Loading cards using filter: \"$appliedFilter\"");
 
-    return Future<List<IndexCard>>.delayed(const Duration(milliseconds: 250), () {
+    cardStreamController.add(_CardListState(isLoading: !silently, cards: currentCardsState));
+    return Future<List<IndexCard>>.delayed(Duration(milliseconds: !silently ? 250 : delay), () {
       if(appliedFilter == Constants.filterAll) {
         return cardsManager.getAllCards(moduleId);
       } else if(appliedFilter == Constants.filterCorrect) {
@@ -110,8 +122,10 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
         return [];
       }
     }).then((value) {
+      // Save current state
+      currentCardsState = value;
       // Push to stream on success
-      cardStreamController.add(value);
+      cardStreamController.add(_CardListState(isLoading: false, cards: value));
     });
   }
 
@@ -121,7 +135,9 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
       builder: (ctx) => ModuleEditorDialog(
         module: module,
         onDidChange: (module) {
+          // Notify module list page that the module data has changed
           Notifier.notify(Constants.notifierModuleList);
+          // Push updated module data to stream
           moduleStreamController.add(module);
         },
       ),
@@ -135,7 +151,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
         moduleId: moduleId,
         indexCard: indexCard,
         onDidChange: (card) {
-          _fetchAndPushCards(_moduleId, currentFilterName);
+          _fetchAndPushCards(_moduleId, currentFilterName, silently: true);
         },
       ),
     );
@@ -144,8 +160,6 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   _resetFilter() {
     filterStreamController.add(Constants.filterAll);
   }
-
-
 
   _navigateHome() {
     if(context.canPop()) {
@@ -172,6 +186,9 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     filterStreamController.close().then((value) {
       if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
     });
+
+    // Close subscriptions
+    filterSubscription.cancel();
   }
 
   @override
@@ -216,13 +233,14 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
         child: const Icon(Icons.add),
       ),
       /// Render body containing the contents of the page
-      body: StreamBuilder<List<IndexCard>>(
+      body: StreamBuilder<_CardListState>(
         stream: cardStream,
         builder: (context, snapshot) {
-          var indexCards = snapshot.data ?? [];
+          var isLoading = snapshot.data?.isLoading ?? false || snapshot.connectionState == ConnectionState.waiting;
+          var indexCards = snapshot.data?.cards ?? [];
 
           /// If the cards are still loading, show stats and filter together with a loading indicator
-          if(snapshot.connectionState == ConnectionState.waiting) {
+          if(isLoading) {
             return ListView(
               children: [
                 _renderStatsSection(module),
