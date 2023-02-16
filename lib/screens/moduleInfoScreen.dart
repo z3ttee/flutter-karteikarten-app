@@ -151,6 +151,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
         moduleId: moduleId,
         indexCard: indexCard,
         onDidChange: (card) {
+          _fetchAndPushModule(_moduleId);
           _fetchAndPushCards(_moduleId, currentFilterName, silently: true);
         },
       ),
