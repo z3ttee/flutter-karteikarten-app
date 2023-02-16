@@ -147,10 +147,11 @@ class StorageManager {
     currentData.remove(moduleId);
     saveAll(currentData);
   }
-  void deleteOneCard(String moduleId, String cardId)async{
+  Future<bool> deleteOneCard(String? moduleId, String cardId) async {
+    if(moduleId == null) return false;
     Map<String, Module> currentData = await readAll();
     currentData[moduleId]!.cards.remove(cardId);
-    saveAll(currentData);
+    return saveAll(currentData);
   }
 
   Future<Map<String, Module>> getDummyModules(int y) {
