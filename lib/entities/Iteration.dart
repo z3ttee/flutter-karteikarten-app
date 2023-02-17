@@ -12,11 +12,9 @@ class Iteration {
   final CardsManager _cardsManager = CardsManager();
   final StorageManager _storageManager = StorageManager();
   bool _init = false;
-  CardFilter _filter = CardFilter.filterAll;
+  final CardFilter _filter;
 
-  Iteration(this._module, CardFilter filter) {
-    _filter = filter;
-  }
+  Iteration(this._module, this._filter);
 
   _initIteration() async {
     if (_filter == CardFilter.filterAll) {
