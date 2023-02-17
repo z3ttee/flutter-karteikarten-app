@@ -147,9 +147,8 @@ class _ModuleListState extends State<ModuleListScreen> {
                 SliverAppBar.medium(
                   title: const Text("Modulübersicht"),
                   centerTitle: true,
-
                   actions: <Widget>[
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.help)),
+                    // IconButton(onPressed: () {}, icon: const Icon(Icons.help)),
                     kIsWeb ? Padding(padding: const EdgeInsets.only(right: 12), child: IconButton(onPressed: () => html.window.open(Constants.repoUrl, "GitHub Repository"), icon: const Icon(Octicons.mark_github)),) : Container(),
                   ],
                 ),
