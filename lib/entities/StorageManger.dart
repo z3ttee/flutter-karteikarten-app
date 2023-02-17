@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -24,7 +23,7 @@ class StorageManager {
   }
 
   /// Read all modules from shared preferences
-  Future<Map<String, Module>> readAll({ int dummyElements = 8 }) async {
+  Future<Map<String, Module>> readAll({int dummyElements = 8}) async {
     // Get instance of shared preferences
     final prefs = await SharedPreferences.getInstance();
     // Read json string from shared preferences
@@ -34,9 +33,9 @@ class StorageManager {
 
     // Check if list exists (a valid string was returned previously).
     // If not return the empty instance from above
-    if(modulesAsString == null){
+    if (modulesAsString == null) {
       // in debug mode, create a dummy list
-      if(kDebugMode){
+      if (kDebugMode) {
         var dummies = getDummy(dummyElements);
         return saveAll(dummies).then((value) => dummies);
       }
@@ -84,10 +83,10 @@ class StorageManager {
     //Read the current data
     Map<String, Module> currentData = await readAll();
     //Check if the cards of a module schould be overwritten
-    if(overwriteCards) {
+    if (overwriteCards) {
       //get current cards
       Map<String, IndexCard>? moduleCards = currentData[module.id]?.cards;
-      if(!(moduleCards == null)){
+      if (!(moduleCards == null)) {
         //Add old cards to current module
         currentData[module.id]!.cards = moduleCards;
       }
@@ -109,7 +108,7 @@ class StorageManager {
   }
 
   Future<Module?> readOneModule(String? moduleId) async {
-    if(moduleId == null) return null;
+    if (moduleId == null) return null;
     //retrieve whole Data
     Map<String, Module> currentData = await readAll();
     //get the module
@@ -117,8 +116,7 @@ class StorageManager {
     //return the Module
     return result;
   }
-  
-  
+
   //Dev methode for dummy data
   Map<String, Module> getDummy(int y) {
     Map<String, Module> x = {};
@@ -132,7 +130,7 @@ class StorageManager {
       for (int j = 0; j < maxCards; j++) {
         IndexCard ddd = IndexCard("question $j", "answer $j");
         ddd.lastCorrect = Random().nextBool();
-        if(ddd.lastCorrect) correctCardsCounter++;
+        if (ddd.lastCorrect) correctCardsCounter++;
         x[zzz.id]?.cards[ddd.id] = ddd;
       }
 
@@ -142,13 +140,14 @@ class StorageManager {
     return x;
   }
 
-  void deleteOneModule(String moduleId)async{
+  void deleteOneModule(String moduleId) async {
     Map<String, Module> currentData = await readAll();
     currentData.remove(moduleId);
     saveAll(currentData);
   }
+
   Future<bool> deleteOneCard(String? moduleId, String cardId) async {
-    if(moduleId == null) return false;
+    if (moduleId == null) return false;
     Map<String, Module> currentData = await readAll();
     currentData[moduleId]!.cards.remove(cardId);
     return saveAll(currentData);

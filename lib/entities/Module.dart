@@ -1,44 +1,46 @@
 import 'Card.dart';
 import 'package:uuid/uuid.dart';
 
-class Module{
-
+class Module {
   String name = "";
   String? description = "";
   String id = "";
-  Map<String,IndexCard> cards = {};
+  Map<String, IndexCard> cards = {};
   int correctCards = 0;
   int iterations = 0;
 
-  void addCard(IndexCard card){
-    cards[card.id]= card;
+  void addCard(IndexCard card) {
+    cards[card.id] = card;
   }
 
-  Map<String,IndexCard> getCards(){
+  Map<String, IndexCard> getCards() {
     return cards;
   }
 
-  Map<String, dynamic> toJson(){
+  Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     List list = [];
-    cards.forEach((key, value) { list.add(value);});
+    cards.forEach((key, value) {
+      list.add(value);
+    });
     result.addAll({
-      'name' : name,
+      'name': name,
       'description': description,
-      'id' : id,
+      'id': id,
       'iterations': iterations,
-      'cards' : list
+      'cards': list
     });
     return result;
   }
 
-   Module.fromJson(Map<String,dynamic> json):
-         name = json['name'],
-         description= json['description'],
-         id = json['id'],
-         iterations= json['iterations'],
-         cards = IndexCard.fromJson(json['cards'])as Map<String,IndexCard>;
-      /*
+  Module.fromJson(Map<String, dynamic> json)
+      : name = json['name'],
+        description = json['description'],
+        id = json['id'],
+        iterations = json['iterations'],
+        cards = IndexCard.fromJson(json['cards']) as Map<String, IndexCard>;
+
+  /*
   {
     Module module = Module(json['name'], json['description']);
     module.id = json['id'];
@@ -47,13 +49,8 @@ class Module{
   }
   */
 
-
-
-  Module(this.name, this.description){
+  Module(this.name, this.description) {
     var uuid = const Uuid();
     id = uuid.v1();
-
   }
-
-
 }
