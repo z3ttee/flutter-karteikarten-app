@@ -13,9 +13,14 @@ class Constants {
   static const double sectionMarginY = 10;
   static const double sectionMarginX = 16;
 
-  static const String filterAll = "Alle";
-  static const String filterWrong = "Falsch";
-  static const String filterCorrect = "Korrekt";
-
   static const String notifierModuleList = "ModuleListNotifier";
+}
+
+enum CardFilter {
+  filterAll("Alle"),
+  filterWrong("Falsch"),
+  filterCorrect("Korrekt");
+
+  final String value;
+  const CardFilter(this.value);
 }

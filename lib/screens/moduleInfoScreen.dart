@@ -55,19 +55,19 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   late final StreamController<Module?> moduleStreamController;
   late final StreamController<_CardListState> cardStreamController;
-  late final StreamController<String> filterStreamController;
+  late final StreamController<CardFilter> filterStreamController;
 
   late final Stream<Module?> moduleStream;
   late final Stream<_CardListState> cardStream;
-  late final Stream<String> filterStream;
+  late final Stream<CardFilter> filterStream;
 
-  late final StreamSubscription<String> filterSubscription;
+  late final StreamSubscription<CardFilter> filterSubscription;
 
   late final String? _moduleId;
   final StorageManager storageManager = StorageManager();
   final CardsManager cardsManager = CardsManager();
 
-  String currentFilterName = Constants.filterAll;
+  CardFilter currentFilter = CardFilter.filterAll;
   List<IndexCard> currentCardsState = [];
 
   @override
@@ -91,12 +91,12 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     _fetchAndPushModule(_moduleId);
 
     // Fetch cards and push result to stream
-    _fetchAndPushCards(_moduleId, Constants.filterAll);
+    _fetchAndPushCards(_moduleId, CardFilter.filterAll);
 
     // Subscribe to changes to the filter value and re-fetch cards
-    filterSubscription = filterStream.listen((filterName) {
-      currentFilterName = filterName;
-      _fetchAndPushCards(_moduleId, filterName);
+    filterSubscription = filterStream.listen((filter) {
+      currentFilter = filter;
+      _fetchAndPushCards(_moduleId, filter);
     });
   }
 
@@ -108,16 +108,16 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     });
   }
 
-  _fetchAndPushCards(String? moduleId, String appliedFilter, {bool silently = false, int delay = 0}) {
+  _fetchAndPushCards(String? moduleId, CardFilter appliedFilter, {bool silently = false, int delay = 0}) {
     if(kDebugMode) print("[ModuleInfoScreen] Loading cards using filter: \"$appliedFilter\"");
 
     cardStreamController.add(_CardListState(isLoading: !silently, cards: currentCardsState));
     return Future<List<IndexCard>>.delayed(Duration(milliseconds: !silently ? 250 : delay), () {
-      if(appliedFilter == Constants.filterAll) {
+      if(appliedFilter == CardFilter.filterAll) {
         return cardsManager.getAllCards(moduleId);
-      } else if(appliedFilter == Constants.filterCorrect) {
+      } else if(appliedFilter == CardFilter.filterCorrect) {
         return cardsManager.getCorrectCards(moduleId);
-      } else if(appliedFilter == Constants.filterWrong) {
+      } else if(appliedFilter == CardFilter.filterWrong) {
         return cardsManager.getWrongCards(moduleId);
       } else {
         return [];
@@ -153,7 +153,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
         indexCard: indexCard,
         onDidChange: (card) {
           _fetchAndPushModule(_moduleId);
-          _fetchAndPushCards(_moduleId, currentFilterName, silently: true);
+          _fetchAndPushCards(_moduleId, currentFilter, silently: true);
         },
       ),
     );
@@ -163,12 +163,12 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     storageManager.deleteOneCard(_moduleId, card.id).then((value) {
       Snackbars.message("Karte gelöscht", context);
       _fetchAndPushModule(_moduleId);
-      _fetchAndPushCards(_moduleId, currentFilterName, silently: true);
+      _fetchAndPushCards(_moduleId, currentFilter, silently: true);
     });
   }
 
   _resetFilter() {
-    filterStreamController.add(Constants.filterAll);
+    filterStreamController.add(CardFilter.filterAll);
   }
 
   _navigateHome() {
@@ -387,12 +387,12 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   /// Render function returning the filter section
   _renderFilterSection() {
-    return StreamBuilder<String>(
+    return StreamBuilder<CardFilter>(
       stream: filterStream,
       builder: (ctx, snapshot) {
         return ModuleListFilterSection(
           onFilterSelected: (name) => filterStreamController.add(name),
-          selectedFilter: snapshot.data ?? Constants.filterAll,
+          selectedFilter: snapshot.data ?? CardFilter.filterAll,
         );
       }
     );

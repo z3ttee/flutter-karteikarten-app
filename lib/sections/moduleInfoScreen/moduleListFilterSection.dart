@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../constants.dart';
 
 class ModuleListFilterSection extends StatelessWidget {
-  final ValueSetter<String> onFilterSelected;
-  final String selectedFilter;
+  final ValueSetter<CardFilter> onFilterSelected;
+  final CardFilter selectedFilter;
 
   const ModuleListFilterSection({
     super.key,
@@ -12,8 +12,8 @@ class ModuleListFilterSection extends StatelessWidget {
     required this.selectedFilter
   });
 
-  _setFilter(String name) {
-    onFilterSelected(name);
+  _setFilter(CardFilter filter) {
+    onFilterSelected(filter);
   }
 
   @override
@@ -33,21 +33,21 @@ class ModuleListFilterSection extends StatelessWidget {
               children: [
                 const SizedBox(width: Constants.sectionMarginX+4,),
                 ChoiceChip(
-                    label: const Text(Constants.filterAll),
-                    selected: selectedFilter == Constants.filterAll,
-                    onSelected: (selected) => _setFilter(Constants.filterAll)
+                    label: Text(CardFilter.filterAll.value),
+                    selected: selectedFilter == CardFilter.filterAll,
+                    onSelected: (selected) => _setFilter(CardFilter.filterAll)
                 ),
                 const SizedBox(width: Constants.listGap,),
                 ChoiceChip(
-                    label: const Text(Constants.filterCorrect),
-                    selected: selectedFilter == Constants.filterCorrect,
-                    onSelected: (selected) => _setFilter(Constants.filterCorrect)
+                    label: Text(CardFilter.filterCorrect.value),
+                    selected: selectedFilter == CardFilter.filterCorrect,
+                    onSelected: (selected) => _setFilter(CardFilter.filterCorrect)
                 ),
                 const SizedBox(width: Constants.listGap,),
                 ChoiceChip(
-                    label: const Text(Constants.filterWrong),
-                    selected: selectedFilter == Constants.filterWrong,
-                    onSelected: (selected) => _setFilter(Constants.filterWrong)
+                    label: Text(CardFilter.filterWrong.value),
+                    selected: selectedFilter == CardFilter.filterWrong,
+                    onSelected: (selected) => _setFilter(CardFilter.filterWrong)
                 ),
                 const SizedBox(width: Constants.sectionMarginX+4,),
               ],
