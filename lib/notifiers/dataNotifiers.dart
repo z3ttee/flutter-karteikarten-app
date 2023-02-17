@@ -1,18 +1,20 @@
 
+import 'package:flutter_karteikarten_app/constants.dart';
+
 class Notifier {
 
   static final Map<String, Function> _notifiers = {};
 
-  static set(String name, Function notifier) {
-    _notifiers[name] = notifier;
+  static set(NotifierName name, Function notifier) {
+    _notifiers[name.value] = notifier;
   }
 
-  static unset(String name) {
-    _notifiers.remove(name);
+  static unset(NotifierName name) {
+    _notifiers.remove(name.value);
   }
 
-  static notify(String name) {
-    Function? notifier = _notifiers[name];
+  static notify(NotifierName name) {
+    Function? notifier = _notifiers[name.value];
     notifier?.call();
   }
 

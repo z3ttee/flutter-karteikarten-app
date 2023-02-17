@@ -12,8 +12,6 @@ class Constants {
 
   static const double sectionMarginY = 10;
   static const double sectionMarginX = 16;
-
-  static const String notifierModuleList = "ModuleListNotifier";
 }
 
 enum CardFilter {
@@ -23,4 +21,21 @@ enum CardFilter {
 
   final String value;
   const CardFilter(this.value);
+}
+
+enum RouteName {
+  routeHome("home"),
+  routeModuleInfo("moduleInfo"),
+  routeIteration("iteration");
+
+  final String value;
+  const RouteName(this.value);
+}
+
+enum NotifierName {
+  notifierModuleList("ModuleListNotifier"),
+  notifierModuleInfo("ModuleInfoNotifier");
+
+  final String value;
+  const NotifierName(this.value);
 }

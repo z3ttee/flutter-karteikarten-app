@@ -9,7 +9,6 @@ import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:flutter_karteikarten_app/entities/CardsManager.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
-import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleListFilterSection.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleStatisticsSection.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
@@ -98,6 +97,14 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
       currentFilter = filter;
       _fetchAndPushCards(_moduleId, filter);
     });
+
+    // Listen for notifications to update cards list
+    Notifier.set(NotifierName.notifierModuleInfo, () {
+      if(kDebugMode) print("[ModuleInfoScreen] Received notification: Updating cards list using current filter.");
+      // If notification was triggered, reload all modules
+      _fetchAndPushModule(_moduleId);
+      _fetchAndPushCards(_moduleId, currentFilter, silently: true);
+    });
   }
 
   _fetchAndPushModule(String? moduleId) {
@@ -137,7 +144,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
         module: module,
         onDidChange: (module) {
           // Notify module list page that the module data has changed
-          Notifier.notify(Constants.notifierModuleList);
+          Notifier.notify(NotifierName.notifierModuleList);
           // Push updated module data to stream
           moduleStreamController.add(module);
         },
@@ -179,8 +186,12 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     } else {
       // Use goNamed() to not add this info route to the
       // routing history.
-      context.goNamed(Routes.routeHome);
+      context.goNamed(RouteName.routeHome.value);
     }
+  }
+
+  _startIteration() {
+    context.pushNamed(RouteName.routeIteration.value, params: { "moduleId": _moduleId! });
   }
 
   @override
@@ -199,6 +210,9 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
     // Close subscriptions
     filterSubscription.cancel();
+
+    // Stop listening for notifications
+    Notifier.unset(NotifierName.notifierModuleInfo);
   }
 
   @override
@@ -253,6 +267,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           if(isLoading) {
             return ListView(
               children: [
+                _renderStartButton(),
                 _renderStatsSection(module),
                 _renderFilterSection(),
                 const SizedBox(height: 96, child: Center(child: CircularProgressIndicator(),),)
@@ -262,16 +277,18 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
           /// If done loading, render the actual content
           return ListView.builder(
-              itemCount: (indexCards.length) + 4,
+              itemCount: (indexCards.length) + 5,
               itemBuilder: (context, itemIndex) {
+                // Render start button at index 0 of the listview
+                if(itemIndex == 0) return _renderStartButton();
                 // Render statistics at index 0 of the listview
-                if(itemIndex == 0) return _renderStatsSection(module);
+                if(itemIndex == 1) return _renderStatsSection(module);
                 // Render filter section at index 1 of the listview
-                if(itemIndex == 1) return _renderFilterSection();
+                if(itemIndex == 2) return _renderFilterSection();
 
                 // Render error screen on empty list or padding underneath
                 // filter section at index 2 of the listview
-                if(itemIndex == 2) {
+                if(itemIndex == 3) {
                   var actualListSize = indexCards.length;
 
                   // Handle empty cards list after fetching
@@ -314,7 +331,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                 // Render list elements. For that we have to convert the index
                 // of the scrollview to a valid index of the cards list.
                 // Because we have always 3 elements rendered before the first index card, we have to subtract by 3
-                var index = itemIndex - 3;
+                var index = itemIndex - 4;
                 // Prevent index overflow. Because we have to add a padding to the bottom of the page, we have to
                 // left one index free
                 if(index <= (indexCards.length - 1)) {
@@ -373,6 +390,22 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  /// Render function returning the statistics section
+  _renderStartButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
+      child: Column(
+        children: [
+          ElevatedButton.icon(
+            onPressed: () => _startIteration(),
+            label: const Text("Durchlauf starten"),
+            icon: const Icon(Icons.school),
+          )
+        ],
       ),
     );
   }

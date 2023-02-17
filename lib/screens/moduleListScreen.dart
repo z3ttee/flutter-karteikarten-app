@@ -30,7 +30,7 @@ class _ModuleListState extends State<ModuleListScreen> {
   late Future<List<Module>> _modules;
   
   void _navigateToModule(String moduleId) {
-    context.pushNamed(Routes.routeModuleInfo, params: { "moduleId": moduleId });
+    context.pushNamed(RouteName.routeModuleInfo.value, params: { "moduleId": moduleId });
   }
 
   Future<Map<String, Module>> _fetchModules() {
@@ -62,7 +62,7 @@ class _ModuleListState extends State<ModuleListScreen> {
     _reloadModules();
 
     // Register notifier to receive information when a module was updated.
-    Notifier.set(Constants.notifierModuleList, () {
+    Notifier.set(NotifierName.notifierModuleList, () {
       if(kDebugMode) print("[ModuleListScreen] Received notification: Updating module list.");
       // If notification was triggered, reload all modules
       _reloadModulesSilent();
@@ -73,7 +73,7 @@ class _ModuleListState extends State<ModuleListScreen> {
   void dispose() {
     super.dispose();
     // Unregister notifier if page is completely destroyed
-    Notifier.unset(Constants.notifierModuleList);
+    Notifier.unset(NotifierName.notifierModuleList);
   }
 
   _openModuleEditor(BuildContext ctx, Module? module) {

@@ -14,6 +14,9 @@ class Iteration {
   bool _init = false;
   final CardFilter _filter;
 
+  int wrongAnswers = 0;
+  int correctAnswers = 0;
+
   Iteration(this._module, this._filter);
 
   _initIteration() async {
@@ -40,7 +43,18 @@ class Iteration {
   }
 
   void setCardState(String cardId, bool correct) {
+    if(correct) {
+      correctAnswers++;
+    } else {
+      wrongAnswers++;
+    }
+
     _module.cards[cardId]!.lastCorrect = correct;
     _storageManager.saveCard(_module.id, _module.cards[cardId]!);
+  }
+
+  Future<bool> complete() {
+    _module.iterations++;
+    return _storageManager.saveModule(_module);
   }
 }
