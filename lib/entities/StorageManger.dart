@@ -140,10 +140,10 @@ class StorageManager {
     return x;
   }
 
-  void deleteOneModule(String moduleId) async {
+  Future<bool> deleteOneModule(String moduleId) async {
     Map<String, Module> currentData = await readAll();
     currentData.remove(moduleId);
-    saveAll(currentData);
+    return saveAll(currentData);
   }
 
   Future<bool> deleteOneCard(String? moduleId, String cardId) async {

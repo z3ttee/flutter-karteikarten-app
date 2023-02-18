@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-
 import '../../constants.dart';
 
 class FilledCard extends StatelessWidget {
@@ -10,12 +9,15 @@ class FilledCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final double? borderRadius;
 
+  final Function()? onTap;
+
   const FilledCard({
     super.key,
     this.elevation,
     this.child, 
     this.padding,
-    this.borderRadius
+    this.borderRadius,
+    this.onTap
   });
 
   @override
@@ -33,7 +35,14 @@ class FilledCard extends StatelessWidget {
       color: Theme.of(context).colorScheme.surfaceVariant,
       shadowColor: Theme.of(context).colorScheme.shadow,
       surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
-      child: Padding(padding: padding ?? const EdgeInsets.all(Constants.cardInnerPadding), child: child ?? Container()),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.all(Radius.circular(borderRadius ?? Constants.cardBorderRadius)),
+        child: Padding(
+            padding: padding ?? const EdgeInsets.all(Constants.cardInnerPadding),
+            child: child ?? Container()
+        ),
+      )
     );
   }
 

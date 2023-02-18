@@ -12,6 +12,7 @@ import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleListFilterSection.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleStatisticsSection.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
+import 'package:flutter_karteikarten_app/widgets/backgrounds/dismissToDeleteBackground.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/indexCardItemCard.dart';
 import 'package:go_router/go_router.dart';
@@ -110,7 +111,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   _fetchAndPushModule(String? moduleId) {
     if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
 
-    return Future<Module?>.delayed(const Duration(milliseconds: 150), () => storageManager.readOneModule(moduleId)).then((value) {
+    return Future<Module?>.delayed(const Duration(milliseconds: 200), () => storageManager.readOneModule(moduleId)).then((value) {
       moduleStreamController.add(value);
     });
   }
@@ -342,22 +343,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                       key: Key(indexCard.id),
                       direction: DismissDirection.endToStart,
                       onDismissed: (direction) => _removeCard(indexCard),
-                      background: Padding(
-                        padding: const EdgeInsets.only(top: Constants.cardInnerPadding, bottom: Constants.cardInnerPadding, right: Constants.cardInnerPadding),
-                        child: Container(
-                          padding: const EdgeInsets.only(top: Constants.cardInnerPadding, bottom: Constants.cardInnerPadding, right: Constants.cardInnerPadding),
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(topRight: Radius.circular(Constants.cardBorderRadius),bottomRight: Radius.circular(Constants.cardBorderRadius)),
-                            color: Theme.of(context).colorScheme.onError,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: const [
-                              Icon(Icons.delete_forever)
-                            ],
-                          ),
-                        ),
-                      ),
+                      background: const DismissToDeleteBackground(),
                       child: IndexCardItemCard(
                         indexCard: indexCard,
                         onEditPressed: (card) => _openCardEditor(_moduleId!, card),

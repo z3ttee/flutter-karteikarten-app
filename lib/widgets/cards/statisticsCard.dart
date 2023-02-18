@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/FilledCard.dart';
-import '../../constants.dart';
 
 class StatCard extends StatelessWidget {
   final double? width;
