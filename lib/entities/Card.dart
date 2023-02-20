@@ -20,17 +20,18 @@ class IndexCard {
         answer = json['answer'],
         question = json['question'],
         lastCorrect = json['lastCorrect'],
-        cardAnswer = json['cardAnswer'],
-        cardWeight = json['cardWeight'],
-        color = json['color'];
+        cardAnswer = CardAnswer.getById(json['cardAnswer']),
+        cardWeight = CardWeight.getById(json['cardWeight']),
+        color = json['color']
+  ;
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'question': question,
         'answer': answer,
         'lastCorrect': lastCorrect,
-        'cardWeight': cardWeight,
-        'cardAnswer': cardAnswer,
+        'cardWeight': cardWeight.value,
+        'cardAnswer': cardAnswer.value,
         'color': color
       };
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Module.dart';
@@ -31,6 +32,7 @@ class StorageManager {
     // Create empty instance of a map
     Map<String, Module> result = {};
 
+
     // Check if list exists (a valid string was returned previously).
     // If not return the empty instance from above
     if (modulesAsString == null) {
@@ -42,7 +44,6 @@ class StorageManager {
       // If not in debug mode, return empty list
       return result;
     }
-
     //Json to Objects
     Map jsonRaw = json.decode(modulesAsString);
     //Create the Modules from json
@@ -61,8 +62,8 @@ class StorageManager {
         IndexCard newCard = IndexCard(entity['question'], entity['answer']);
         newCard.id = entity['id'];
         newCard.lastCorrect = entity['lastCorrect'];
-        newCard.cardAnswer = entity['cardAnswer'];
-        newCard.cardWeight = entity['cardWeight'];
+        newCard.cardAnswer = CardAnswer.getById(entity['cardAnswer']);
+        newCard.cardWeight = CardWeight.getById(entity['cardWeight']);
         newCard.color = entity['color'];
 
         // If the card was answered incorrectly in last iteration
@@ -134,6 +135,8 @@ class StorageManager {
         IndexCard ddd = IndexCard("question $j", "answer $j");
         ddd.lastCorrect = Random().nextBool();
         if (ddd.lastCorrect) correctCardsCounter++;
+        ddd.cardWeight = CardWeight.normal;
+        ddd.cardAnswer = CardAnswer.never;
         x[zzz.id]?.cards[ddd.id] = ddd;
       }
 

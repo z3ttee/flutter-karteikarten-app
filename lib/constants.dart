@@ -15,13 +15,17 @@ class Constants {
 }
 
 enum CardAnswer{
-  never(-1),
-  wrong(0),
-  neutral(1),
-  correct(2);
+  never(0),
+  wrong(1),
+  neutral(2),
+  correct(3);
 
   final int value;
   const CardAnswer(this.value);
+
+  static getById(int id){
+    return CardAnswer.values.elementAt(id);
+  }
 }
 
 enum CardWeight{
@@ -31,6 +35,10 @@ enum CardWeight{
 
   final int value;
   const CardWeight(this.value);
+
+  static getById(int id){
+    return CardWeight.values.elementAt(id -1);
+  }
 }
 
 enum CardFilter {
