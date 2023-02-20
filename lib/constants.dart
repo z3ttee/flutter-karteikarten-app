@@ -23,7 +23,8 @@ enum CardAnswer{
   final int value;
   const CardAnswer(this.value);
 
-  static getById(int id){
+  static getById(int? id){
+    if(id == null) return CardAnswer.never;
     return CardAnswer.values.elementAt(id);
   }
 }
@@ -36,15 +37,18 @@ enum CardWeight{
   final int value;
   const CardWeight(this.value);
 
-  static getByIndex(int index) {
+  static getByIndex(int? index) {
+    if(index == null) return CardWeight.simple;
     return CardWeight.values.elementAt(index);
   }
 
-  static getById(int id){
+  static getById(int? id){
+    if(id == null) return CardWeight.simple;
     return CardWeight.getByIndex(CardWeight.idToIndex(id));
   }
 
-  static idToIndex(int id) {
+  static idToIndex(int? id) {
+    if(id == null) return 0;
     return id - 1;
   }
 }

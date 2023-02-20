@@ -41,6 +41,13 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+
+    progressStreamController.close();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -76,8 +83,8 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
           const SizedBox(height: Constants.listGap,),
           Row(
             children: [
-              Expanded(child: StatCard(title: "Karten", value: "${widget.module.cards.length}")),
-              const SizedBox(width: Constants.listGap,),
+              // Expanded(child: StatCard(title: "Karten", value: "${widget.module.cards.length}")),
+              // const SizedBox(width: Constants.listGap,),
               Expanded(child: StatCard(title: "Durchläufe", value: "${widget.module.iterations}")),
               const SizedBox(width: Constants.listGap,),
               Expanded(child: StatCard(title: "Zuletzt richtig", value: "${Calc.calcModuleProgress(widget.module)}", unit: "%",)),

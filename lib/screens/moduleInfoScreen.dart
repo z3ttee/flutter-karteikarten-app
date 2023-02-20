@@ -268,6 +268,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           /// If the cards are still loading, show stats and filter together with a loading indicator
           if(isLoading) {
             return ListView(
+              physics: const ClampingScrollPhysics(),
               children: [
                 _renderTopSection(module),
                 const SizedBox(height: 96, child: Center(child: CircularProgressIndicator(),),)
@@ -277,6 +278,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
           /// If done loading, render the actual content
           return ListView.builder(
+              physics: const ClampingScrollPhysics(),
               itemCount: (indexCards.length) + 3,
               itemBuilder: (context, itemIndex) {
                 if(itemIndex == 0) {
