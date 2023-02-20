@@ -109,8 +109,34 @@ class _IterationScreenState extends State<IterationScreen> {
     });
   }
 
-  _navigateToModule() {
-    context.pop();
+  _navigateToModule([bool mustConfirm = false]) {
+    if(!mustConfirm) {
+      context.pop();
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Durchlauf beenden?"),
+        content: const Text("Wenn du den Durchlauf frühzeitig beendest werden deine bisherigen Ergebnisse nicht gespeichert. Möchtest du trotzdem fortfahren?"),
+        actions: [
+          TextButton(
+              onPressed: () => context.pop(),
+              child: const Text("Nicht abbrechen")
+          ),
+          FilledButton.tonal(
+            onPressed: () {
+              // Pop two times, because first one just closes dialog
+              context.pop();
+              context.pop();
+            },
+            child: const Text("Durchlauf beenden")
+          ),
+        ],
+      )
+    );
+
   }
 
   _navigateHome() {
@@ -250,8 +276,9 @@ class _IterationScreenState extends State<IterationScreen> {
       appBar: AppBar(
         title: Text(module.name),
         centerTitle: true,
-        leading: BackButton(
-          onPressed: () => _navigateToModule(),
+        leading: IconButton(
+          onPressed: () => _navigateToModule(true),
+          icon: const Icon(Icons.close)
         ),
       ),
       /// Render body containing the contents of the page
