@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/forms/cardForm.dart';
@@ -30,6 +31,7 @@ class _CardEditorState extends State<CardEditorDialog> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
+  CardWeight selectedWeight = CardWeight.normal;
   late bool _isSaving;
 
   _closeDialog() {
@@ -50,6 +52,7 @@ class _CardEditorState extends State<CardEditorDialog> {
         card = widget.indexCard ?? IndexCard(nameController.value.text, descriptionController.value.text);
         card.question = nameController.value.text;
         card.answer = descriptionController.value.text;
+        card.cardWeight = selectedWeight;
       } else {
         // Otherwise create new card
         card = IndexCard(nameController.value.text, descriptionController.value.text);
@@ -90,6 +93,7 @@ class _CardEditorState extends State<CardEditorDialog> {
     if(widget.indexCard != null) {
       nameController.text = widget.indexCard!.question;
       descriptionController.text = widget.indexCard!.answer;
+      selectedWeight = widget.indexCard!.cardWeight;
     }
   }
 
@@ -116,6 +120,8 @@ class _CardEditorState extends State<CardEditorDialog> {
                 formKey: _formKey,
                 nameController: nameController,
                 descriptionController: descriptionController,
+                selectedWeight: selectedWeight,
+                onWeightSelected: (weight) => selectedWeight = weight,
               ),
             )
           ],

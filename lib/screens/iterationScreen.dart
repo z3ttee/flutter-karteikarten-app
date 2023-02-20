@@ -224,6 +224,7 @@ class _IterationScreenState extends State<IterationScreen> {
 
     // Notify info screen that data has changed
     Notifier.notify(NotifierName.notifierModuleInfo);
+    Notifier.notify(NotifierName.notifierModuleList);
   }
 
   @override
@@ -263,7 +264,7 @@ class _IterationScreenState extends State<IterationScreen> {
             stream: currentCardStream,
             builder: (ctx, snapshot) {
               if(!snapshot.hasData) {
-                return const Center(child: Text("Loading..."),);
+                return const Center(child: CircularProgressIndicator(),);
               }
 
               return Center(

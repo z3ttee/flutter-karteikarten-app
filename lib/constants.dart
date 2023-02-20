@@ -36,8 +36,16 @@ enum CardWeight{
   final int value;
   const CardWeight(this.value);
 
+  static getByIndex(int index) {
+    return CardWeight.values.elementAt(index);
+  }
+
   static getById(int id){
-    return CardWeight.values.elementAt(id -1);
+    return CardWeight.getByIndex(CardWeight.idToIndex(id));
+  }
+
+  static idToIndex(int id) {
+    return id - 1;
   }
 }
 
