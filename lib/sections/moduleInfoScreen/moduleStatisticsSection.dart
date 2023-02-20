@@ -58,17 +58,18 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
         children: [
           Row(
             children: [
-              Expanded(child: StatCard(
-                title: "Dein Lernfortschritt:",
-                backgroundColor: Colors.transparent,
-                disablePaddingX: true,
-                customChild: StreamBuilder<double>(
-                    stream: progressStream,
-                    builder: (ctx, snapshot) {
-                      return RoundedProgressIndicator(progress: snapshot.data,);
-                    },
-                  ),
-                ),
+              StreamBuilder(
+                stream: progressStream,
+                builder: (ctx, snapshot) {
+                  return Expanded(
+                    child: StatCard(
+                      title: snapshot.data != null && snapshot.data! >= 1 ? "Du hast alles richtig beantwortet!" : "Dein Lernfortschritt:",
+                      backgroundColor: Colors.transparent,
+                      disablePaddingX: true,
+                      customChild: RoundedProgressIndicator(progress: snapshot.data,),
+                    ),
+                  );
+                }
               ),
             ],
           ),
