@@ -126,12 +126,12 @@ class _IterationScreenState extends State<IterationScreen> {
   }
 
   _markWrong() {
-    currentIteration.setCardState(currentCard.id, false);
+    currentIteration.setCardState(false);
     _nextCard();
   }
 
   _markCorrect() {
-    currentIteration.setCardState(currentCard.id, true);
+    currentIteration.setCardState(true);
     _nextCard();
   }
 
