@@ -6,6 +6,7 @@ import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/statisticsCard.dart';
+import 'package:flutter_karteikarten_app/widgets/progress-indicator/roundedProgressIndicator.dart';
 import 'package:rxdart/rxdart.dart';
 
 class ModuleStatisticsSection extends StatefulWidget {
@@ -61,23 +62,14 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
                 title: "Dein Lernfortschritt:",
                 backgroundColor: Colors.transparent,
                 disablePaddingX: true,
-                customChild: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(48)),
-                  child: StreamBuilder<double>(
+                customChild: StreamBuilder<double>(
                     stream: progressStream,
                     builder: (ctx, snapshot) {
-                      if(snapshot.connectionState != ConnectionState.active) {
-                        return const LinearProgressIndicator();
-                      }
-
-                      return LinearProgressIndicator(
-                        value: snapshot.data ?? 0,
-                        color: Theme.of(context).colorScheme.secondary,
-                      );
+                      return RoundedProgressIndicator(progress: snapshot.data,);
                     },
                   ),
                 ),
-              )),
+              ),
             ],
           ),
           const SizedBox(height: Constants.listGap,),
