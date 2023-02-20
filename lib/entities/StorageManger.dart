@@ -58,9 +58,12 @@ class StorageManager {
       // Loop through cards in decoded json map
       for (var entity in rawMapCards) {
         // Instantiate new card
-        IndexCard y = IndexCard(entity['question'], entity['answer']);
-        y.id = entity['id'];
-        y.lastCorrect = entity['lastCorrect'];
+        IndexCard newCard = IndexCard(entity['question'], entity['answer']);
+        newCard.id = entity['id'];
+        newCard.lastCorrect = entity['lastCorrect'];
+        newCard.cardAnswer = entity['cardAnswer'];
+        newCard.cardWeight = entity['cardWeight'];
+        newCard.color = entity['color'];
 
         // If the card was answered incorrectly in last iteration
         // increase wrong counter
@@ -69,7 +72,7 @@ class StorageManager {
         }
 
         //Add cards to modules map
-        result[key]!.cards[y.id] = y;
+        result[key]!.cards[newCard.id] = newCard;
       }
 
       //Add the amount of wrong answerd questions

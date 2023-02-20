@@ -14,6 +14,25 @@ class Constants {
   static const double sectionMarginX = 16;
 }
 
+enum CardAnswer{
+  never(-1),
+  wrong(0),
+  neutral(1),
+  correct(2);
+
+  final int value;
+  const CardAnswer(this.value);
+}
+
+enum CardWeight{
+  normal(1),
+  medium(2),
+  hard(3);
+
+  final int value;
+  const CardWeight(this.value);
+}
+
 enum CardFilter {
   filterAll("Alle"),
   filterWrong("Falsch"),
