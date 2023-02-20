@@ -29,7 +29,7 @@ enum CardAnswer{
 }
 
 enum CardWeight{
-  normal(1),
+  simple(1),
   medium(2),
   hard(3);
 

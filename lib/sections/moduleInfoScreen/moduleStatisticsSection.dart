@@ -1,11 +1,14 @@
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/statisticsCard.dart';
+import 'package:rxdart/rxdart.dart';
 
-class ModuleStatisticsSection extends StatelessWidget {
+class ModuleStatisticsSection extends StatefulWidget {
   final Module module;
 
   const ModuleStatisticsSection({
@@ -14,27 +17,74 @@ class ModuleStatisticsSection extends StatelessWidget {
   });
 
   @override
+  State<StatefulWidget> createState() {
+    return _ModuleStatisticsSectionState();
+  }
+
+}
+
+class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
+
+  late final StreamController<double> progressStreamController;
+  late final Stream<double> progressStream;
+
+  @override
+  void initState() {
+    super.initState();
+
+    progressStreamController = BehaviorSubject();
+    progressStream = progressStreamController.stream;
+
+    Calc.calcModuleLearningProgress(widget.module).then((value){
+      progressStreamController.add(value);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(Constants.sectionMarginX),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: const EdgeInsets.only(bottom: Constants.sectionContentGap), child: Text("Statistiken", style: Theme.of(context).textTheme.titleLarge,),),
           Row(
             children: [
-              Expanded(child: StatCard(title: "Karten", value: "${module.cards.length}")),
+              Expanded(child: StatCard(
+                title: "Dein Lernfortschritt:",
+                backgroundColor: Colors.transparent,
+                disablePaddingX: true,
+                customChild: ClipRRect(
+                  borderRadius: const BorderRadius.all(Radius.circular(48)),
+                  child: StreamBuilder<double>(
+                    stream: progressStream,
+                    builder: (ctx, snapshot) {
+                      if(snapshot.connectionState != ConnectionState.active) {
+                        return const LinearProgressIndicator();
+                      }
+
+                      return LinearProgressIndicator(
+                        value: snapshot.data ?? 0,
+                        color: Theme.of(context).colorScheme.secondary,
+                      );
+                    },
+                  ),
+                ),
+              )),
+            ],
+          ),
+          const SizedBox(height: Constants.listGap,),
+          Row(
+            children: [
+              Expanded(child: StatCard(title: "Karten", value: "${widget.module.cards.length}")),
               const SizedBox(width: Constants.listGap,),
-              Expanded(child: StatCard(title: "Durchläufe", value: "${module.iterations}")),
+              Expanded(child: StatCard(title: "Durchläufe", value: "${widget.module.iterations}")),
               const SizedBox(width: Constants.listGap,),
-              Expanded(child: StatCard(title: "Fortschritt", value: "${Calc.calcModuleProgress(module)}", unit: "%",)),
+              Expanded(child: StatCard(title: "Zuletzt richtig", value: "${Calc.calcModuleProgress(widget.module)}", unit: "%",)),
             ],
           )
         ],
       ),
     );
   }
-
 }

@@ -135,7 +135,7 @@ class StorageManager {
         IndexCard ddd = IndexCard("question $j", "answer $j");
         ddd.lastCorrect = Random().nextBool();
         if (ddd.lastCorrect) correctCardsCounter++;
-        ddd.cardWeight = CardWeight.normal;
+        ddd.cardWeight = CardWeight.simple;
         ddd.cardAnswer = CardAnswer.never;
         x[zzz.id]?.cards[ddd.id] = ddd;
       }

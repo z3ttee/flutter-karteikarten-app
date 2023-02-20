@@ -239,6 +239,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
       appBar: AppBar(
         title: Text(module.name),
         centerTitle: true,
+        elevation: 1,
         leading: BackButton(
           onPressed: () => _navigateHome(),
         ),
@@ -268,9 +269,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           if(isLoading) {
             return ListView(
               children: [
-                _renderStartButton(),
-                _renderStatsSection(module),
-                _renderFilterSection(),
+                _renderTopSection(module),
                 const SizedBox(height: 96, child: Center(child: CircularProgressIndicator(),),)
               ],
             );
@@ -278,18 +277,15 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
           /// If done loading, render the actual content
           return ListView.builder(
-              itemCount: (indexCards.length) + 5,
+              itemCount: (indexCards.length) + 3,
               itemBuilder: (context, itemIndex) {
-                // Render start button at index 0 of the listview
-                if(itemIndex == 0) return _renderStartButton();
-                // Render statistics at index 0 of the listview
-                if(itemIndex == 1) return _renderStatsSection(module);
-                // Render filter section at index 1 of the listview
-                if(itemIndex == 2) return _renderFilterSection();
+                if(itemIndex == 0) {
+                  return _renderTopSection(module);
+                }
 
                 // Render error screen on empty list or padding underneath
                 // filter section at index 2 of the listview
-                if(itemIndex == 3) {
+                if(itemIndex == 1) {
                   var actualListSize = indexCards.length;
 
                   // Handle empty cards list after fetching
@@ -332,7 +328,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                 // Render list elements. For that we have to convert the index
                 // of the scrollview to a valid index of the cards list.
                 // Because we have always 3 elements rendered before the first index card, we have to subtract by 3
-                var index = itemIndex - 4;
+                var index = itemIndex - 2;
                 // Prevent index overflow. Because we have to add a padding to the bottom of the page, we have to
                 // left one index free
                 if(index <= (indexCards.length - 1)) {
@@ -382,17 +378,17 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   /// Render function returning the statistics section
   _renderStartButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
-      child: Column(
+    return Row(
         children: [
-          ElevatedButton.icon(
-            onPressed: () => _startIteration(),
-            label: const Text("Durchlauf starten"),
-            icon: const Icon(Icons.school),
-          )
+          Expanded(child: SizedBox(
+            height: 44,
+            child: FilledButton.tonalIcon(
+              onPressed: () => _startIteration(),
+              label: const Text("Durchlauf starten"),
+              icon: const Icon(Icons.school),
+            ),
+          ))
         ],
-      ),
     );
   }
 
@@ -414,6 +410,52 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           selectedFilter: snapshot.data ?? CardFilter.filterAll,
         );
       }
+    );
+  }
+
+  _renderTopSection(Module module) {
+    return Column(
+      children: [
+        Card(
+          elevation: 1,
+          shadowColor: Colors.transparent,
+          shape: const RoundedRectangleBorder(
+            // Only show a border, if card type is not "filled"
+              side: BorderSide(width: 0, color: Colors.transparent),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: Constants.sectionMarginX*1.5,
+                  right: Constants.sectionMarginX*1.5,
+                  top: 0,
+                  bottom: Constants.sectionMarginY*2.5,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(padding: const EdgeInsets.only(bottom: Constants.sectionMarginY), child: _renderStatsSection(module),),
+                    _renderStartButton()
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: Constants.sectionMarginX,
+            right: Constants.sectionMarginX,
+            top: Constants.sectionMarginY*3
+          ),
+          child: _renderFilterSection(),
+        ),
+      ],
     );
   }
 

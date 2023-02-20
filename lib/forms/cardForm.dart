@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
+import 'package:flutter_karteikarten_app/forms/controllers/weigthInputController.dart';
 
 class CardForm extends StatefulWidget {
   // Form key to uniquely identify the form
@@ -9,17 +10,14 @@ class CardForm extends StatefulWidget {
 
   final TextEditingController nameController;
   final TextEditingController descriptionController;
-
-  final CardWeight? selectedWeight;
-  final Function(CardWeight weight)? onWeightSelected;
+  final WeightInputController weightInputController;
 
   const CardForm({
     super.key,
     required this.formKey,
     required this.nameController,
     required this.descriptionController,
-    this.selectedWeight,
-    this.onWeightSelected
+    required this.weightInputController
   });
 
   @override
@@ -34,14 +32,17 @@ class _CardFormState extends State<CardForm> {
   late final List<bool> _weights;
   
   _setSelectedWeight(int index) {
+    widget.weightInputController.value = CardWeight.getByIndex(index);
+  }
+
+  _handleWeightControllerValue() {
+    var index = CardWeight.idToIndex(widget.weightInputController.value.value);
     setState(() {
       // The button that is tapped is set to true, and the others to false.
       for (int i = 0; i < _weights.length; i++) {
         _weights[i] = i == index;
       }
     });
-    
-    widget.onWeightSelected?.call(CardWeight.getByIndex(index));
   }
 
   @override
@@ -49,9 +50,13 @@ class _CardFormState extends State<CardForm> {
     super.initState();
 
     _weights = [true, false, false];
-    if(widget.selectedWeight != null) {
-      _setSelectedWeight(CardWeight.idToIndex(widget.selectedWeight!.value));
-    }
+    widget.weightInputController.addListener(_handleWeightControllerValue);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.weightInputController.removeListener(_handleWeightControllerValue);
   }
 
   @override

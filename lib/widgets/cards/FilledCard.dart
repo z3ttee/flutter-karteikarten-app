@@ -10,6 +10,8 @@ class FilledCard extends StatelessWidget {
   final double? borderRadius;
 
   final Function()? onTap;
+  final Color? color;
+  final bool disablePaddingX;
 
   const FilledCard({
     super.key,
@@ -17,7 +19,9 @@ class FilledCard extends StatelessWidget {
     this.child, 
     this.padding,
     this.borderRadius,
-    this.onTap
+    this.onTap,
+    this.color,
+    this.disablePaddingX = false
   });
 
   @override
@@ -32,14 +36,14 @@ class FilledCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.all(Radius.circular(borderRadius ?? Constants.cardBorderRadius))
       ),
-      color: Theme.of(context).colorScheme.surfaceVariant,
+      color: color ?? Theme.of(context).colorScheme.surfaceVariant,
       shadowColor: Theme.of(context).colorScheme.shadow,
       surfaceTintColor: Theme.of(context).colorScheme.surfaceTint,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.all(Radius.circular(borderRadius ?? Constants.cardBorderRadius)),
         child: Padding(
-            padding: padding ?? const EdgeInsets.all(Constants.cardInnerPadding),
+            padding: padding ?? (disablePaddingX ? const EdgeInsets.symmetric(vertical: Constants.cardInnerPadding) : const EdgeInsets.all(Constants.cardInnerPadding)),
             child: child ?? Container()
         ),
       )

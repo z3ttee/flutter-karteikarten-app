@@ -7,7 +7,7 @@ class IndexCard {
   bool lastCorrect = false;
   String id = "";
   CardAnswer cardAnswer = CardAnswer.never;
-  CardWeight cardWeight = CardWeight.normal;
+  CardWeight cardWeight = CardWeight.simple;
   String? color;
 
   IndexCard(this.question, this.answer) {
