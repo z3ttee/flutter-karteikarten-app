@@ -5,7 +5,6 @@ import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 
 class Iteration {
-
   List<IndexCard> _iterationCards = [];
   final Module _module;
 
@@ -13,7 +12,10 @@ class Iteration {
   final StorageManager _storageManager = StorageManager();
   bool _init = false;
   final CardFilter _filter;
+  late IndexCard _currentCard;
 
+  int currentCardCount = 0;
+  int totalCardCount = 0;
   int wrongAnswers = 0;
   int correctAnswers = 0;
 
@@ -28,6 +30,7 @@ class Iteration {
       _iterationCards = await _cardsManager.getCorrectCards(_module.id);
     }
     _iterationCards.shuffle();
+    totalCardCount = _iterationCards.length;
   }
 
   Future<IndexCard?> getNext() async {
@@ -39,22 +42,27 @@ class Iteration {
 
     IndexCard result = _iterationCards.last;
     _iterationCards.removeLast();
+    _currentCard = result;
+    currentCardCount++;
     return result;
   }
 
-  void setCardState(String cardId, bool correct) {
-    if(correct) {
+  void setCardState(bool correct) {
+    if (correct) {
       correctAnswers++;
     } else {
       wrongAnswers++;
     }
+    _currentCard.lastCorrect = correct;
+  }
 
-    _module.cards[cardId]!.lastCorrect = correct;
-    _storageManager.saveCard(_module.id, _module.cards[cardId]!);
+  void setCardAnswerState(CardAnswer state) {
+    _currentCard.cardAnswer = state;
   }
 
   Future<bool> complete() {
     _module.iterations++;
+    _module.cards[_currentCard.id] = _currentCard;
     return _storageManager.saveModule(_module);
   }
 }
