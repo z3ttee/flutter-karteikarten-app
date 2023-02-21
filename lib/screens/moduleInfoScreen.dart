@@ -11,6 +11,7 @@ import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleListFilterSection.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleStatisticsSection.dart';
+import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 import 'package:flutter_karteikarten_app/widgets/backgrounds/dismissToDeleteBackground.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
@@ -56,10 +57,12 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   late final StreamController<Module?> moduleStreamController;
   late final StreamController<_CardListState> cardStreamController;
   late final StreamController<CardFilter> filterStreamController;
+  late final StreamController<double> progressStreamController;
 
   late final Stream<Module?> moduleStream;
   late final Stream<_CardListState> cardStream;
   late final Stream<CardFilter> filterStream;
+  late final Stream<double> progressStream;
 
   late final StreamSubscription<CardFilter> filterSubscription;
 
@@ -81,11 +84,13 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     moduleStreamController = BehaviorSubject();
     cardStreamController = BehaviorSubject();
     filterStreamController = BehaviorSubject();
+    progressStreamController = BehaviorSubject();
 
     // Initialize stream to listen to data changes
     moduleStream = moduleStreamController.stream;
     cardStream = cardStreamController.stream;
     filterStream = filterStreamController.stream;
+    progressStream = progressStreamController.stream;
 
     // Fetch module and push result to stream
     _fetchAndPushModule(_moduleId);
@@ -108,11 +113,45 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    // Close streams to free resources
+    moduleStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed module stream.");
+    });
+    cardStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed card stream.");
+    });
+    filterStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
+    });
+    progressStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
+    });
+
+    // Close subscriptions
+    filterSubscription.cancel();
+
+    // Stop listening for notifications
+    Notifier.unset(NotifierName.notifierModuleInfo);
+  }
+
   _fetchAndPushModule(String? moduleId) {
     if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
 
     return Future<Module?>.delayed(const Duration(milliseconds: 200), () => storageManager.readOneModule(moduleId)).then((value) {
       moduleStreamController.add(value);
+
+      if(value != null) {
+        _fetchAndPushProgress(value);
+      }
+    });
+  }
+
+  _fetchAndPushProgress(Module module) {
+    Calc.calcModuleLearningProgress(module).then((value){
+      progressStreamController.add(value);
     });
   }
 
@@ -193,27 +232,6 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   _startIteration() {
     context.pushNamed(RouteName.routeIteration.value, params: { "moduleId": _moduleId! });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    // Close streams to free resources
-    moduleStreamController.close().then((value) {
-      if(kDebugMode) print("[ModuleInfoScreen] Closed module stream.");
-    });
-    cardStreamController.close().then((value) {
-      if(kDebugMode) print("[ModuleInfoScreen] Closed card stream.");
-    });
-    filterStreamController.close().then((value) {
-      if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
-    });
-
-    // Close subscriptions
-    filterSubscription.cancel();
-
-    // Stop listening for notifications
-    Notifier.unset(NotifierName.notifierModuleInfo);
   }
 
   @override
@@ -398,7 +416,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   _renderStatsSection(Module module) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
-      child: ModuleStatisticsSection(module: module,),
+      child: ModuleStatisticsSection(module: module, progress: progressStream,),
     );
   }
 

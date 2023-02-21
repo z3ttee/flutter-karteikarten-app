@@ -53,11 +53,14 @@ class Iteration {
     } else {
       wrongAnswers++;
     }
+
     _currentCard.lastCorrect = correct;
+    module.cards[_currentCard.id] = _currentCard;
   }
 
   void setCardAnswerState(CardAnswer state) {
     _currentCard.cardAnswer = state;
+    module.cards[_currentCard.id] = _currentCard;
   }
 
   Future<bool> complete() {

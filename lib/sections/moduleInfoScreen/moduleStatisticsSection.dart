@@ -7,14 +7,15 @@ import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/statisticsCard.dart';
 import 'package:flutter_karteikarten_app/widgets/progress-indicator/roundedProgressIndicator.dart';
-import 'package:rxdart/rxdart.dart';
 
 class ModuleStatisticsSection extends StatefulWidget {
   final Module module;
+  final Stream<double> progress;
 
   const ModuleStatisticsSection({
     super.key,
-    required this.module
+    required this.module,
+    required this.progress
   });
 
   @override
@@ -25,28 +26,6 @@ class ModuleStatisticsSection extends StatefulWidget {
 }
 
 class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
-
-  late final StreamController<double> progressStreamController;
-  late final Stream<double> progressStream;
-
-  @override
-  void initState() {
-    super.initState();
-
-    progressStreamController = BehaviorSubject();
-    progressStream = progressStreamController.stream;
-
-    Calc.calcModuleLearningProgress(widget.module).then((value){
-      progressStreamController.add(value);
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-
-    progressStreamController.close();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +38,7 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
           Row(
             children: [
               StreamBuilder(
-                stream: progressStream,
+                stream: widget.progress,
                 builder: (ctx, snapshot) {
                   return Expanded(
                     child: StatCard(

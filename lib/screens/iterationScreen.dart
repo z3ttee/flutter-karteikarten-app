@@ -8,6 +8,7 @@ import 'package:flutter_karteikarten_app/entities/Iteration.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
+import 'package:flutter_karteikarten_app/widgets/buttons/labeledButton.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/statisticsCard.dart';
 import 'package:flutter_karteikarten_app/widgets/progress-indicator/roundedProgressIndicator.dart';
@@ -35,10 +36,12 @@ class _IterationScreenState extends State<IterationScreen> {
   late final StreamController<Iteration> iterationStreamController;
   late final StreamController<IndexCard> currentCardStreamController;
   late final StreamController<bool> revealAnswerStreamController;
+  late final StreamController<double> progressStreamController;
 
   late final Stream<Iteration> iterationStream;
   late final Stream<IndexCard> currentCardStream;
   late final Stream<bool> revealAnswerStream;
+  late final Stream<double> progressStream;
 
   late final StreamSubscription<Module?> moduleSubscription;
   late final StreamSubscription<IndexCard?> cardSubscription;
@@ -61,11 +64,13 @@ class _IterationScreenState extends State<IterationScreen> {
     iterationStreamController = BehaviorSubject();
     currentCardStreamController = BehaviorSubject();
     revealAnswerStreamController = BehaviorSubject();
+    progressStreamController = BehaviorSubject();
 
     // Initialize stream to listen to data changes
     iterationStream = iterationStreamController.stream;
     currentCardStream = currentCardStreamController.stream;
     revealAnswerStream = revealAnswerStreamController.stream;
+    progressStream = progressStreamController.stream;
 
     // Fetch module and push result to stream
     _fetchAndPushModule(_moduleId);
@@ -99,6 +104,7 @@ class _IterationScreenState extends State<IterationScreen> {
       return iteration.getNext().then((value) {
         if(value == null) return iteration;
         currentCardStreamController.add(value);
+        _recalcProgressAndPush();
         return iteration;
       });
     });
@@ -148,11 +154,13 @@ class _IterationScreenState extends State<IterationScreen> {
 
   _markWrong() {
     currentIteration.setCardAnswerState(CardAnswer.wrong);
+    currentIteration.setCardState(false);
     _nextCard();
   }
 
   _markNeutral() {
     currentIteration.setCardAnswerState(CardAnswer.neutral);
+    currentIteration.setCardState(false);
     _nextCard();
   }
 
@@ -183,7 +191,15 @@ class _IterationScreenState extends State<IterationScreen> {
 
       _hideAnswer();
       currentCardStreamController.add(value);
+      _recalcProgressAndPush();
     });
+  }
+
+  _recalcProgressAndPush() {
+    var current = currentIteration.currentCardCount;
+    var total = currentIteration.totalCardCount <= 0 ? 1 : currentIteration.totalCardCount;
+    var result = current / total;
+    progressStreamController.add(result);
   }
 
   _showSummary() {
@@ -241,6 +257,9 @@ class _IterationScreenState extends State<IterationScreen> {
     revealAnswerStreamController.close().then((value) {
       if(kDebugMode) print("[ModuleInfoScreen] Closed revealAnswer stream.");
     });
+    progressStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed revealAnswer stream.");
+    });
 
     // Close subscriptions
     cardSubscription.cancel();
@@ -284,39 +303,6 @@ class _IterationScreenState extends State<IterationScreen> {
                 icon: const Icon(Icons.close)
             ),
           ),
-          /// Render card containing the progress bar
-          Card(
-            elevation: 1,
-            shadowColor: Colors.transparent,
-            shape: const RoundedRectangleBorder(
-              // Only show a border, if card type is not "filled"
-                side: BorderSide(width: 0, color: Colors.transparent),
-                borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))
-            ),
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: Constants.sectionMarginX,
-                right: Constants.sectionMarginX,
-                top: 0,
-                bottom: Constants.sectionMarginY*2,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: StatCard(
-                          backgroundColor: Colors.transparent,
-                          title: (iteration.totalCardCount-iteration.currentCardCount) > 0 ? "Noch ${iteration.totalCardCount-iteration.currentCardCount} Karten" : "Das ist deine letzte Karte!",
-                          customChild: RoundedProgressIndicator(progress: iteration.currentCardCount / iteration.totalCardCount,),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
           /// Render current card section
           StreamBuilder<bool>(
             stream: revealAnswerStream,
@@ -327,73 +313,86 @@ class _IterationScreenState extends State<IterationScreen> {
                 stream: currentCardStream,
                 builder: (ctx, snapshot) {
                   if(!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator(),);
+                    return Column(
+                      children: [
+                        _renderTopSection(iteration),
+                        const Center(child: CircularProgressIndicator(),)
+                      ],
+                    );
                   }
 
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(Constants.sectionMarginX),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          /// Card
-                          SizedBox(
-                            height: 256,
-                            child: Card(
-                              child: Center(
-                                child: Column(
+                  return Column(
+                    children: [
+                      _renderTopSection(iteration),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(Constants.sectionMarginX),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              /// Card
+                              SizedBox(
+                                height: 256,
+                                child: Card(
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text(snapshot.data!.question),
+                                        !answerRevealed ? Container() : Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
+                                          child: Text(snapshot.data!.answer),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              /// Reveal answer button row
+                              answerRevealed ? Container() : Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Text(snapshot.data!.question),
-                                    !answerRevealed ? Container() : Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
-                                      child: Text(snapshot.data!.answer),
-                                    )
+                                    TextButton(
+                                        onPressed: () => _showAnswer(),
+                                        child: const Text("Antwort aufdecken")
+                                    ),
                                   ],
                                 ),
                               ),
-                            ),
+                              /// Buttons row
+                              !answerRevealed ? Container() : Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    LabeledButton(
+                                      onPressed: () => _markWrong(),
+                                      text: "Falsch",
+                                      icon: Icons.sentiment_dissatisfied_outlined
+                                    ),
+                                    LabeledButton(
+                                        onPressed: () => _markNeutral(),
+                                        text: "Neutral",
+                                        icon: Icons.sentiment_neutral_outlined
+                                    ),
+                                    LabeledButton(
+                                        onPressed: () => _markCorrect(),
+                                        text: "Richtig",
+                                        icon: Icons.sentiment_very_satisfied_outlined
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
                           ),
-                          /// Reveal answer button row
-                          answerRevealed ? Container() : Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                TextButton(
-                                    onPressed: () => _showAnswer(),
-                                    child: const Text("Antwort aufdecken")
-                                ),
-                              ],
-                            ),
-                          ),
-                          /// Buttons row
-                          !answerRevealed ? Container() : Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                IconButton(
-                                    onPressed: () => _markWrong(),
-                                    icon: const Icon(Icons.sentiment_dissatisfied_outlined, size: 32,)
-                                ),
-                                IconButton(
-                                    onPressed: () => _markNeutral(),
-                                    icon: const Icon(Icons.sentiment_neutral, size: 32,),
-                                ),
-                                IconButton(
-                                    onPressed: () => _markCorrect(),
-                                    icon: const Icon(Icons.sentiment_very_satisfied_outlined, size: 32,)
-                                )
-                              ],
-                            ),
-                          )
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   );
                 },
               );
@@ -416,6 +415,52 @@ class _IterationScreenState extends State<IterationScreen> {
               onPressed: () => _navigateHome(),
               label: const Text("Zurück zur Startseite"),
               icon: const Icon(Icons.arrow_back),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Render card containing the progress bar
+  Widget _renderTopSection(Iteration iteration) {
+    return Card(
+      elevation: 1,
+      shadowColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        // Only show a border, if card type is not "filled"
+          side: BorderSide(width: 0, color: Colors.transparent),
+          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: Constants.sectionMarginX,
+          right: Constants.sectionMarginX,
+          top: 0,
+          bottom: Constants.sectionMarginY*2,
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: StatCard(
+                    backgroundColor: Colors.transparent,
+                    title: (iteration.totalCardCount-iteration.currentCardCount) > 0 ? "Noch ${iteration.totalCardCount-iteration.currentCardCount} Karten" : "Das ist deine letzte Karte!",
+                    customChild: StreamBuilder<double>(
+                      stream: progressStream,
+                      builder: (ctx, snapshot) {
+                        if(snapshot.connectionState != ConnectionState.active) {
+                          return const RoundedProgressIndicator();
+                        }
+
+                        // return const RoundedProgressIndicator();
+                        return RoundedProgressIndicator(progress: snapshot.data ?? 0,);
+                      },
+                    ),
+                  ),
+                ),
+              ],
             )
           ],
         ),
