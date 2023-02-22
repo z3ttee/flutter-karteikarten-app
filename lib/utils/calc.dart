@@ -15,6 +15,10 @@ class Calc {
     double reachedPoints = 0;
     var cards = module.cards.values.toList();
 
+    if(cards.isEmpty) {
+      return 0;
+    }
+
     for(var i = 0; i < cards.length; i++) {
       var card = cards.elementAt(i);
       totalPoints += card.cardWeight.value;
