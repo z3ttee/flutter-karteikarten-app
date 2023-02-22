@@ -26,9 +26,8 @@ class ModuleItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onPressed?.call(module),
-      child: FilledCard(
+    return FilledCard(
+      onTap: () => Future.delayed(const Duration(milliseconds: 50), () => onPressed?.call(module)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -77,8 +76,7 @@ class ModuleItemCard extends StatelessWidget {
                 Chip(
                   label: Row(
                     children: [
-                      Text(
-                          "${module.cards.length} Karte${(module.cards.length != 1 ? 'n' : '')}"),
+                      Text("${module.cards.length} Karte${(module.cards.length != 1 ? 'n' : '')}"),
                       const DotDivider(),
                       Text("${Calc.calcModuleProgress(module)} %"),
                     ],
@@ -102,7 +100,7 @@ class ModuleItemCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Padding(
+                      /*Padding(
                         padding: const EdgeInsets.only(left: 4),
                         child: IconButton(
                           icon: const Icon(Icons.alarm),
@@ -130,7 +128,7 @@ class ModuleItemCard extends StatelessWidget {
                                 .withOpacity(0.12),
                           ),
                         ),
-                      ),
+                      ),*/
                       // Only show edit button, if there
                       // is an event handler registered to catch the click
                       onEditPressed == null
@@ -172,7 +170,6 @@ class ModuleItemCard extends StatelessWidget {
             )
           ],
         ),
-      ),
     );
   }
 }

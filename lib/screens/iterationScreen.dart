@@ -8,7 +8,10 @@ import 'package:flutter_karteikarten_app/entities/Iteration.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
+import 'package:flutter_karteikarten_app/widgets/buttons/labeledButton.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
+import 'package:flutter_karteikarten_app/widgets/cards/statisticsCard.dart';
+import 'package:flutter_karteikarten_app/widgets/progress-indicator/roundedProgressIndicator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rxdart/rxdart.dart';
 import '../entities/Module.dart';
@@ -30,15 +33,15 @@ class IterationScreen extends StatefulWidget {
 
 class _IterationScreenState extends State<IterationScreen> {
 
-  late final StreamController<Module?> moduleStreamController;
   late final StreamController<Iteration> iterationStreamController;
   late final StreamController<IndexCard> currentCardStreamController;
   late final StreamController<bool> revealAnswerStreamController;
+  late final StreamController<double> progressStreamController;
 
-  late final Stream<Module?> moduleStream;
   late final Stream<Iteration> iterationStream;
   late final Stream<IndexCard> currentCardStream;
   late final Stream<bool> revealAnswerStream;
+  late final Stream<double> progressStream;
 
   late final StreamSubscription<Module?> moduleSubscription;
   late final StreamSubscription<IndexCard?> cardSubscription;
@@ -58,26 +61,19 @@ class _IterationScreenState extends State<IterationScreen> {
     _moduleId = widget.activatedRoute.params["moduleId"];
 
     // Initialize stream controllers for updating data
-    moduleStreamController = BehaviorSubject();
     iterationStreamController = BehaviorSubject();
     currentCardStreamController = BehaviorSubject();
     revealAnswerStreamController = BehaviorSubject();
+    progressStreamController = BehaviorSubject();
 
     // Initialize stream to listen to data changes
-    moduleStream = moduleStreamController.stream;
     iterationStream = iterationStreamController.stream;
     currentCardStream = currentCardStreamController.stream;
     revealAnswerStream = revealAnswerStreamController.stream;
+    progressStream = progressStreamController.stream;
 
     // Fetch module and push result to stream
     _fetchAndPushModule(_moduleId);
-
-    // Subscribe to changes to the filter value and re-fetch cards
-    moduleSubscription = moduleStream.listen((module) {
-      if(module != null) {
-        _fetchAndPushIteration(module, CardFilter.filterAll);
-      }
-    });
 
     // Subscribe to changes to the current card value
     cardSubscription = currentCardStream.listen((card) {
@@ -89,7 +85,11 @@ class _IterationScreenState extends State<IterationScreen> {
     if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
 
     return Future<Module?>.delayed(const Duration(milliseconds: 150), () => storageManager.readOneModule(moduleId)).then((value) {
-      moduleStreamController.add(value);
+      if(value == null) {
+        Snackbars.message("Module konnt nicht geladen werden", context);
+        return;
+      }
+      _fetchAndPushIteration(value, CardFilter.filterAll);
     });
   }
 
@@ -104,13 +104,40 @@ class _IterationScreenState extends State<IterationScreen> {
       return iteration.getNext().then((value) {
         if(value == null) return iteration;
         currentCardStreamController.add(value);
+        _recalcProgressAndPush();
         return iteration;
       });
     });
   }
 
-  _navigateToModule() {
-    context.pop();
+  _navigateToModule([bool mustConfirm = false]) {
+    if(!mustConfirm) {
+      context.pop();
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Durchlauf beenden?"),
+        content: const Text("Wenn du den Durchlauf frühzeitig beendest werden deine bisherigen Ergebnisse nicht gespeichert. Möchtest du trotzdem fortfahren?"),
+        actions: [
+          TextButton(
+              onPressed: () => context.pop(),
+              child: const Text("Nicht abbrechen")
+          ),
+          FilledButton.tonal(
+            onPressed: () {
+              // Pop two times, because first one just closes dialog
+              context.pop();
+              context.pop();
+            },
+            child: const Text("Durchlauf beenden")
+          ),
+        ],
+      )
+    );
+
   }
 
   _navigateHome() {
@@ -126,12 +153,20 @@ class _IterationScreenState extends State<IterationScreen> {
   }
 
   _markWrong() {
-    currentIteration.setCardState(currentCard.id, false);
+    currentIteration.setCardAnswerState(CardAnswer.wrong);
+    currentIteration.setCardState(false);
+    _nextCard();
+  }
+
+  _markNeutral() {
+    currentIteration.setCardAnswerState(CardAnswer.neutral);
+    currentIteration.setCardState(false);
     _nextCard();
   }
 
   _markCorrect() {
-    currentIteration.setCardState(currentCard.id, true);
+    currentIteration.setCardAnswerState(CardAnswer.correct);
+    currentIteration.setCardState(true);
     _nextCard();
   }
 
@@ -156,7 +191,15 @@ class _IterationScreenState extends State<IterationScreen> {
 
       _hideAnswer();
       currentCardStreamController.add(value);
+      _recalcProgressAndPush();
     });
+  }
+
+  _recalcProgressAndPush() {
+    var current = currentIteration.currentCardCount;
+    var total = currentIteration.totalCardCount <= 0 ? 1 : currentIteration.totalCardCount;
+    var result = current / total;
+    progressStreamController.add(result);
   }
 
   _showSummary() {
@@ -173,7 +216,7 @@ class _IterationScreenState extends State<IterationScreen> {
             child: Column(
               children: [
                 const Text("Du hast "),
-                Text("${currentIteration.correctAnswers} von ${currentIteration.correctAnswers + currentIteration.wrongAnswers}"),
+                Text("${currentIteration.correctAnswers} von ${currentIteration.totalCardCount}"),
                 const Text("richtig beantwortet."),
               ],
             ),
@@ -205,9 +248,6 @@ class _IterationScreenState extends State<IterationScreen> {
   void dispose() {
     super.dispose();
     // Close streams to free resources
-    moduleStreamController.close().then((value) {
-      if(kDebugMode) print("[ModuleInfoScreen] Closed module stream.");
-    });
     iterationStreamController.close().then((value) {
       if(kDebugMode) print("[ModuleInfoScreen] Closed iteration stream.");
     });
@@ -217,107 +257,148 @@ class _IterationScreenState extends State<IterationScreen> {
     revealAnswerStreamController.close().then((value) {
       if(kDebugMode) print("[ModuleInfoScreen] Closed revealAnswer stream.");
     });
+    progressStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed revealAnswer stream.");
+    });
 
     // Close subscriptions
-    moduleSubscription.cancel();
     cardSubscription.cancel();
 
     // Notify info screen that data has changed
     Notifier.notify(NotifierName.notifierModuleInfo);
+    Notifier.notify(NotifierName.notifierModuleList);
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: StreamBuilder(
-        stream: moduleStream,
+        stream: iterationStream,
         initialData: null,
         builder: (context, snapshot) {
           if(snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(),);
           }
 
-          return snapshot.data == null ? _renderErrorScreen() : _renderInfoScreen(snapshot.data!);
+          return snapshot.data == null ? _renderErrorScreen() : _renderIterationScreen(snapshot.data!);
         }
       ),
     );
   }
 
-  Widget _renderInfoScreen(Module module) {
+  Widget _renderIterationScreen(Iteration iteration) {
+    var module = iteration.module;
     return Scaffold(
-      /// Render appbar with back button and module name as title
-      appBar: AppBar(
-        title: Text(module.name),
-        centerTitle: true,
-        leading: BackButton(
-          onPressed: () => _navigateToModule(),
-        ),
-      ),
+
       /// Render body containing the contents of the page
-      body: StreamBuilder<bool>(
-        stream: revealAnswerStream,
-        builder: (ctx, snapshot) {
-          var answerRevealed = snapshot.data ?? false;
-
-          return StreamBuilder<IndexCard>(
-            stream: currentCardStream,
+      body: Column(
+        children: [
+          /// Render appbar with back button and module name as title
+          AppBar(
+            elevation: 1,
+            title: Text(module.name),
+            centerTitle: true,
+            leading: IconButton(
+                onPressed: () => _navigateToModule(true),
+                icon: const Icon(Icons.close)
+            ),
+          ),
+          /// Render current card section
+          StreamBuilder<bool>(
+            stream: revealAnswerStream,
             builder: (ctx, snapshot) {
-              if(!snapshot.hasData) {
-                return const Center(child: Text("Loading..."),);
-              }
+              var answerRevealed = snapshot.data ?? false;
 
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(Constants.sectionMarginX),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+              return StreamBuilder<IndexCard>(
+                stream: currentCardStream,
+                builder: (ctx, snapshot) {
+                  if(!snapshot.hasData) {
+                    return Column(
+                      children: [
+                        _renderTopSection(iteration),
+                        const Center(child: CircularProgressIndicator(),)
+                      ],
+                    );
+                  }
+
+                  return Column(
                     children: [
-                      SizedBox(
-                        height: 256,
-                        child: Card(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(snapshot.data!.question),
-                                !answerRevealed ? Container() : Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
-                                  child: Text(snapshot.data!.answer),
-                                )
-                              ],
-                            ),
+                      _renderTopSection(iteration),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(Constants.sectionMarginX),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              /// Card
+                              SizedBox(
+                                height: 256,
+                                child: Card(
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text(snapshot.data!.question),
+                                        !answerRevealed ? Container() : Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
+                                          child: Text(snapshot.data!.answer),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              /// Reveal answer button row
+                              answerRevealed ? Container() : Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    TextButton(
+                                        onPressed: () => _showAnswer(),
+                                        child: const Text("Antwort aufdecken")
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              /// Buttons row
+                              !answerRevealed ? Container() : Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    LabeledButton(
+                                      onPressed: () => _markWrong(),
+                                      text: "Falsch",
+                                      icon: Icons.sentiment_dissatisfied_outlined
+                                    ),
+                                    LabeledButton(
+                                        onPressed: () => _markNeutral(),
+                                        text: "Neutral",
+                                        icon: Icons.sentiment_neutral_outlined
+                                    ),
+                                    LabeledButton(
+                                        onPressed: () => _markCorrect(),
+                                        text: "Richtig",
+                                        icon: Icons.sentiment_very_satisfied_outlined
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            !answerRevealed ? Container() : IconButton(
-                                onPressed: () => _markWrong(),
-                                icon: const Icon(Icons.close)
-                            ),
-                            answerRevealed ? Container() : TextButton(
-                                onPressed: () => _showAnswer(),
-                                child: const Text("Antwort aufdecken")
-                            ),
-                            !answerRevealed ? Container() : IconButton(
-                                onPressed: () => _markCorrect(),
-                                icon: const Icon(Icons.check)
-                            )
-                          ],
-                        ),
-                      )
                     ],
-                  ),
-                ),
+                  );
+                },
               );
             },
-          );
-        },
+          )
+        ],
       )
     );
   }
@@ -334,6 +415,52 @@ class _IterationScreenState extends State<IterationScreen> {
               onPressed: () => _navigateHome(),
               label: const Text("Zurück zur Startseite"),
               icon: const Icon(Icons.arrow_back),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Render card containing the progress bar
+  Widget _renderTopSection(Iteration iteration) {
+    return Card(
+      elevation: 1,
+      shadowColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        // Only show a border, if card type is not "filled"
+          side: BorderSide(width: 0, color: Colors.transparent),
+          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: Constants.sectionMarginX,
+          right: Constants.sectionMarginX,
+          top: 0,
+          bottom: Constants.sectionMarginY*2,
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: StatCard(
+                    backgroundColor: Colors.transparent,
+                    title: (iteration.totalCardCount-iteration.currentCardCount) > 0 ? "Noch ${iteration.totalCardCount-iteration.currentCardCount} Karten" : "Das ist deine letzte Karte!",
+                    customChild: StreamBuilder<double>(
+                      stream: progressStream,
+                      builder: (ctx, snapshot) {
+                        if(snapshot.connectionState != ConnectionState.active) {
+                          return const RoundedProgressIndicator();
+                        }
+
+                        // return const RoundedProgressIndicator();
+                        return RoundedProgressIndicator(progress: snapshot.data ?? 0,);
+                      },
+                    ),
+                  ),
+                ),
+              ],
             )
           ],
         ),

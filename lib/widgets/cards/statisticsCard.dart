@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/FilledCard.dart';
-import '../../constants.dart';
 
 class StatCard extends StatelessWidget {
   final double? width;
   final String title;
-  final String value;
+  final String? value;
   final String? unit;
+
+  final Widget? customChild;
+  final double? elevation;
+  final Color? backgroundColor;
+
+  final bool disablePaddingX;
 
   const StatCard({
     super.key,
-    this.width = 128,
     required this.title,
-    required this.value,
+    this.width = 128,
+    this.value,
     this.unit,
+    this.customChild,
+    this.elevation, this.backgroundColor,
+    this.disablePaddingX = false,
   });
 
   @override
@@ -21,26 +30,32 @@ class StatCard extends StatelessWidget {
     return SizedBox(
       width: width,
       child: FilledCard(
-        elevation: 2,
+        borderRadius: 4,
+        elevation: elevation ?? 0,
+        color: backgroundColor,
+        disablePaddingX: disablePaddingX,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              softWrap: false,
-              style: Theme.of(context).textTheme.labelMedium?.merge(TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  letterSpacing: 1.5)),
+            Padding(
+              padding: const EdgeInsets.only(bottom: Constants.listGap),
+              child: Text(
+                title,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                softWrap: false,
+                style: Theme.of(context).textTheme.labelMedium?.merge(TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    letterSpacing: 1.5)),
+              ),
             ),
-            Row(
+            customChild ?? Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  value,
+                value == null ? Container() : Text(
+                  value!,
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
                 unit == null

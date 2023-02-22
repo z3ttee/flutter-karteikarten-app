@@ -1,40 +1,69 @@
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Module.dart';
 import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/statisticsCard.dart';
+import 'package:flutter_karteikarten_app/widgets/progress-indicator/roundedProgressIndicator.dart';
 
-class ModuleStatisticsSection extends StatelessWidget {
+class ModuleStatisticsSection extends StatefulWidget {
   final Module module;
+  final Stream<double> progress;
 
   const ModuleStatisticsSection({
     super.key,
-    required this.module
+    required this.module,
+    required this.progress
   });
 
   @override
+  State<StatefulWidget> createState() {
+    return _ModuleStatisticsSectionState();
+  }
+
+}
+
+class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(Constants.sectionMarginX),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: const EdgeInsets.only(bottom: Constants.sectionContentGap), child: Text("Statistiken", style: Theme.of(context).textTheme.titleLarge,),),
           Row(
             children: [
-              Expanded(child: StatCard(title: "Karten", value: "${module.cards.length}")),
+              StreamBuilder(
+                stream: widget.progress,
+                builder: (ctx, snapshot) {
+                  return Expanded(
+                    child: StatCard(
+                      title: snapshot.data != null && snapshot.data! >= 1 ? "Du hast alles richtig beantwortet!" : "Dein Lernfortschritt:",
+                      backgroundColor: Colors.transparent,
+                      disablePaddingX: true,
+                      customChild: RoundedProgressIndicator(progress: snapshot.data,),
+                    ),
+                  );
+                }
+              ),
+            ],
+          ),
+          const SizedBox(height: Constants.listGap,),
+          Row(
+            children: [
+              // Expanded(child: StatCard(title: "Karten", value: "${widget.module.cards.length}")),
+              // const SizedBox(width: Constants.listGap,),
+              Expanded(child: StatCard(title: "Durchläufe", value: "${widget.module.iterations}")),
               const SizedBox(width: Constants.listGap,),
-              Expanded(child: StatCard(title: "Durchläufe", value: "${module.iterations}")),
-              const SizedBox(width: Constants.listGap,),
-              Expanded(child: StatCard(title: "Fortschritt", value: "${Calc.calcModuleProgress(module)}", unit: "%",)),
+              Expanded(child: StatCard(title: "Zuletzt richtig", value: "${Calc.calcModuleProgress(widget.module)}", unit: "%",)),
             ],
           )
         ],
       ),
     );
   }
-
 }

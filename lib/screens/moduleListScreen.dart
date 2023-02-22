@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
-import 'package:flutter_karteikarten_app/routes.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rxdart/rxdart.dart';
 import "package:universal_html/html.dart" as html;
 
 import 'package:flutter/foundation.dart';
@@ -12,6 +14,8 @@ import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/moduleItemCard.dart';
 import '../entities/Module.dart';
+import '../utils/snackbars.dart';
+import '../widgets/backgrounds/dismissToDeleteBackground.dart';
 
 class ModuleListScreen extends StatefulWidget {
   const ModuleListScreen({super.key});
@@ -25,47 +29,39 @@ class ModuleListScreen extends StatefulWidget {
 
 class _ModuleListState extends State<ModuleListScreen> {
 
-  // Create variable of type Future to not re-fetch all modules
-  // when UI is rerendered
-  late Future<List<Module>> _modules;
+  late final StreamController<List<Module>> moduleStreamController;
+  late final Stream<List<Module>> moduleStream;
+
+  final StorageManager storageManager = StorageManager();
   
   void _navigateToModule(String moduleId) {
     context.pushNamed(RouteName.routeModuleInfo.value, params: { "moduleId": moduleId });
   }
 
-  Future<Map<String, Module>> _fetchModules() {
-    StorageManager test = StorageManager();
-    return test.readAll();
-  }
-
-  Future<List<Module>> _fetchModulesAsList() {
+  _fetchAndPushModules() {
     if (kDebugMode) {
       print("[ModuleListScreen] Fetching modules...");
     }
 
-    return Future.delayed(const Duration(milliseconds: 300), () async {
-      return _fetchModules().then((value) {
-        // Create list from map values
-        return value.values.toList();
-      }).catchError((error) {
-        // Return empty list
-        return List<Module>.empty();
-      });
+    storageManager.readAll().then((modules){
+      moduleStreamController.add(modules.values.toList());
     });
   }
 
   @override
   void initState() {
     super.initState();
-    // Set initial state of the widget
-    // In this case, start fetching modules
-    _reloadModules();
+
+    moduleStreamController = BehaviorSubject();
+    moduleStream = moduleStreamController.stream;
+
+    _fetchAndPushModules();
 
     // Register notifier to receive information when a module was updated.
     Notifier.set(NotifierName.notifierModuleList, () {
       if(kDebugMode) print("[ModuleListScreen] Received notification: Updating module list.");
       // If notification was triggered, reload all modules
-      _reloadModulesSilent();
+      _fetchAndPushModules();
     });
   }
   
@@ -87,25 +83,17 @@ class _ModuleListState extends State<ModuleListScreen> {
                 print("[ModuleListScreen] Module value changed");
               }
 
-              _reloadModulesSilent();
+              _fetchAndPushModules();
             },
           );
         }
     );
   }
 
-  _reloadModules() {
-    setState(() {
-      _modules = _fetchModulesAsList();
-    });
-  }
-
-  _reloadModulesSilent() {
-    var future = _fetchModulesAsList();
-    future.then((value){
-      setState(() {
-        _modules = future;
-      });
+  _deleteModule(Module module) {
+    storageManager.deleteOneModule(module.id).then((value){
+      Snackbars.message("Modul gelöscht", context);
+      _fetchAndPushModules();
     });
   }
 
@@ -123,11 +111,12 @@ class _ModuleListState extends State<ModuleListScreen> {
           onPressed: () => _openModuleEditor(context, null),
           child: const Icon(Icons.add)
       ),
-      body: FutureBuilder(
-          future: _modules,
+      body: StreamBuilder(
+          stream: moduleStream,
           builder: (context, snapshot) {
+
             // Check if future produced an error
-            if(snapshot.connectionState == ConnectionState.waiting) {
+            if(snapshot.connectionState != ConnectionState.active) {
               // If true, show an error card
               return const Center(child: CircularProgressIndicator());
             }
@@ -147,9 +136,8 @@ class _ModuleListState extends State<ModuleListScreen> {
                 SliverAppBar.medium(
                   title: const Text("Modulübersicht"),
                   centerTitle: true,
-
                   actions: <Widget>[
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.help)),
+                    // IconButton(onPressed: () {}, icon: const Icon(Icons.help)),
                     kIsWeb ? Padding(padding: const EdgeInsets.only(right: 12), child: IconButton(onPressed: () => html.window.open(Constants.repoUrl, "GitHub Repository"), icon: const Icon(Octicons.mark_github)),) : Container(),
                   ],
                 ),
@@ -176,14 +164,21 @@ class _ModuleListState extends State<ModuleListScreen> {
             right: Constants.sectionMarginX,
             top: (index == 0) ? 0 : Constants.listGap,
             bottom: (index == maxIndex) ? Constants.bottomPaddingFab : 0),
-        child: ModuleItemCard(
-          module: module,
-          filled: true,
-          onPressed: (module) => _navigateToModule(module.id),
-          onEditPressed: (module) {
-            _openModuleEditor(context, module);
-          },
+        child: Dismissible(
+          key: Key(module.id),
+          background: const DismissToDeleteBackground(),
+          direction: DismissDirection.endToStart,
+          onDismissed: (direction) => _deleteModule(module),
+          child: ModuleItemCard(
+            module: module,
+            filled: true,
+            onPressed: (module) => _navigateToModule(module.id),
+            onEditPressed: (module) {
+              _openModuleEditor(context, module);
+            },
+          )
         ),
+
       );},
         // Pass the amount of available items for the list
         // to render all available items
@@ -212,7 +207,7 @@ class _ModuleListState extends State<ModuleListScreen> {
 
   Widget renderRetryAction() {
     return TextButton.icon(
-      onPressed: _reloadModules,
+      onPressed: () => _fetchAndPushModules(),
       label: const Text("Erneut versuchen"),
       icon: const Icon(Icons.sync),
     );

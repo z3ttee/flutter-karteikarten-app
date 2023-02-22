@@ -11,7 +11,9 @@ import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleListFilterSection.dart';
 import 'package:flutter_karteikarten_app/sections/moduleInfoScreen/moduleStatisticsSection.dart';
+import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
+import 'package:flutter_karteikarten_app/widgets/backgrounds/dismissToDeleteBackground.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/indexCardItemCard.dart';
 import 'package:go_router/go_router.dart';
@@ -55,10 +57,12 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   late final StreamController<Module?> moduleStreamController;
   late final StreamController<_CardListState> cardStreamController;
   late final StreamController<CardFilter> filterStreamController;
+  late final StreamController<double> progressStreamController;
 
   late final Stream<Module?> moduleStream;
   late final Stream<_CardListState> cardStream;
   late final Stream<CardFilter> filterStream;
+  late final Stream<double> progressStream;
 
   late final StreamSubscription<CardFilter> filterSubscription;
 
@@ -80,11 +84,13 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     moduleStreamController = BehaviorSubject();
     cardStreamController = BehaviorSubject();
     filterStreamController = BehaviorSubject();
+    progressStreamController = BehaviorSubject();
 
     // Initialize stream to listen to data changes
     moduleStream = moduleStreamController.stream;
     cardStream = cardStreamController.stream;
     filterStream = filterStreamController.stream;
+    progressStream = progressStreamController.stream;
 
     // Fetch module and push result to stream
     _fetchAndPushModule(_moduleId);
@@ -107,11 +113,45 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    // Close streams to free resources
+    moduleStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed module stream.");
+    });
+    cardStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed card stream.");
+    });
+    filterStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
+    });
+    progressStreamController.close().then((value) {
+      if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
+    });
+
+    // Close subscriptions
+    filterSubscription.cancel();
+
+    // Stop listening for notifications
+    Notifier.unset(NotifierName.notifierModuleInfo);
+  }
+
   _fetchAndPushModule(String? moduleId) {
     if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
 
-    return Future<Module?>.delayed(const Duration(milliseconds: 150), () => storageManager.readOneModule(moduleId)).then((value) {
+    return Future<Module?>.delayed(const Duration(milliseconds: 200), () => storageManager.readOneModule(moduleId)).then((value) {
       moduleStreamController.add(value);
+
+      if(value != null) {
+        _fetchAndPushProgress(value);
+      }
+    });
+  }
+
+  _fetchAndPushProgress(Module module) {
+    Calc.calcModuleLearningProgress(module).then((value){
+      progressStreamController.add(value);
     });
   }
 
@@ -195,27 +235,6 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-    // Close streams to free resources
-    moduleStreamController.close().then((value) {
-      if(kDebugMode) print("[ModuleInfoScreen] Closed module stream.");
-    });
-    cardStreamController.close().then((value) {
-      if(kDebugMode) print("[ModuleInfoScreen] Closed card stream.");
-    });
-    filterStreamController.close().then((value) {
-      if(kDebugMode) print("[ModuleInfoScreen] Closed filter stream.");
-    });
-
-    // Close subscriptions
-    filterSubscription.cancel();
-
-    // Stop listening for notifications
-    Notifier.unset(NotifierName.notifierModuleInfo);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Material(
       child: StreamBuilder(
@@ -238,6 +257,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
       appBar: AppBar(
         title: Text(module.name),
         centerTitle: true,
+        elevation: 1,
         leading: BackButton(
           onPressed: () => _navigateHome(),
         ),
@@ -266,10 +286,9 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           /// If the cards are still loading, show stats and filter together with a loading indicator
           if(isLoading) {
             return ListView(
+              physics: const ClampingScrollPhysics(),
               children: [
-                _renderStartButton(),
-                _renderStatsSection(module),
-                _renderFilterSection(),
+                _renderTopSection(module),
                 const SizedBox(height: 96, child: Center(child: CircularProgressIndicator(),),)
               ],
             );
@@ -277,18 +296,16 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
           /// If done loading, render the actual content
           return ListView.builder(
-              itemCount: (indexCards.length) + 5,
+              physics: const ClampingScrollPhysics(),
+              itemCount: (indexCards.length) + 3,
               itemBuilder: (context, itemIndex) {
-                // Render start button at index 0 of the listview
-                if(itemIndex == 0) return _renderStartButton();
-                // Render statistics at index 0 of the listview
-                if(itemIndex == 1) return _renderStatsSection(module);
-                // Render filter section at index 1 of the listview
-                if(itemIndex == 2) return _renderFilterSection();
+                if(itemIndex == 0) {
+                  return _renderTopSection(module);
+                }
 
                 // Render error screen on empty list or padding underneath
                 // filter section at index 2 of the listview
-                if(itemIndex == 3) {
+                if(itemIndex == 1) {
                   var actualListSize = indexCards.length;
 
                   // Handle empty cards list after fetching
@@ -331,7 +348,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                 // Render list elements. For that we have to convert the index
                 // of the scrollview to a valid index of the cards list.
                 // Because we have always 3 elements rendered before the first index card, we have to subtract by 3
-                var index = itemIndex - 4;
+                var index = itemIndex - 2;
                 // Prevent index overflow. Because we have to add a padding to the bottom of the page, we have to
                 // left one index free
                 if(index <= (indexCards.length - 1)) {
@@ -342,25 +359,11 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                       key: Key(indexCard.id),
                       direction: DismissDirection.endToStart,
                       onDismissed: (direction) => _removeCard(indexCard),
-                      background: Padding(
-                        padding: const EdgeInsets.only(top: Constants.cardInnerPadding, bottom: Constants.cardInnerPadding, right: Constants.cardInnerPadding),
-                        child: Container(
-                          padding: const EdgeInsets.only(top: Constants.cardInnerPadding, bottom: Constants.cardInnerPadding, right: Constants.cardInnerPadding),
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(topRight: Radius.circular(Constants.cardBorderRadius),bottomRight: Radius.circular(Constants.cardBorderRadius)),
-                            color: Theme.of(context).colorScheme.onError,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: const [
-                              Icon(Icons.delete_forever)
-                            ],
-                          ),
-                        ),
-                      ),
+                      background: const DismissToDeleteBackground(),
                       child: IndexCardItemCard(
                         indexCard: indexCard,
                         onEditPressed: (card) => _openCardEditor(_moduleId!, card),
+                        onDeletePressed: (card) => _removeCard(card),
                       ),
                     ),
                   );
@@ -396,17 +399,29 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   /// Render function returning the statistics section
   _renderStartButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
-      child: Column(
+    return Row(
         children: [
-          ElevatedButton.icon(
-            onPressed: () => _startIteration(),
-            label: const Text("Durchlauf starten"),
-            icon: const Icon(Icons.school),
+          Expanded(child: SizedBox(
+            height: 44,
+            child: FilledButton.tonalIcon(
+              onPressed: () => _startIteration(),
+              label: const Text("Durchlauf starten"),
+              icon: const Icon(Icons.school),
+            ),
+          )),
+          const SizedBox(width: Constants.listGap,),
+          SizedBox(
+            height: 44,
+            width: 44,
+            child: FilledButton.tonal(
+              onPressed: () => _startIteration(),
+              style: FilledButton.styleFrom(
+                padding: EdgeInsets.zero
+              ),
+              child: const Icon(Icons.arrow_drop_down),
+            ),
           )
         ],
-      ),
     );
   }
 
@@ -414,7 +429,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   _renderStatsSection(Module module) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
-      child: ModuleStatisticsSection(module: module,),
+      child: ModuleStatisticsSection(module: module, progress: progressStream,),
     );
   }
 
@@ -428,6 +443,52 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           selectedFilter: snapshot.data ?? CardFilter.filterAll,
         );
       }
+    );
+  }
+
+  _renderTopSection(Module module) {
+    return Column(
+      children: [
+        Card(
+          elevation: 1,
+          shadowColor: Colors.transparent,
+          shape: const RoundedRectangleBorder(
+            // Only show a border, if card type is not "filled"
+              side: BorderSide(width: 0, color: Colors.transparent),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: Constants.sectionMarginX*1.5,
+                  right: Constants.sectionMarginX*1.5,
+                  top: 0,
+                  bottom: Constants.sectionMarginY*2.5,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(padding: const EdgeInsets.only(bottom: Constants.sectionMarginY), child: _renderStatsSection(module),),
+                    _renderStartButton()
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(
+            left: Constants.sectionMarginX,
+            right: Constants.sectionMarginX,
+            top: Constants.sectionMarginY*3
+          ),
+          child: _renderFilterSection(),
+        ),
+      ],
     );
   }
 

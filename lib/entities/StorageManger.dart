@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Module.dart';
@@ -31,6 +32,7 @@ class StorageManager {
     // Create empty instance of a map
     Map<String, Module> result = {};
 
+
     // Check if list exists (a valid string was returned previously).
     // If not return the empty instance from above
     if (modulesAsString == null) {
@@ -42,7 +44,6 @@ class StorageManager {
       // If not in debug mode, return empty list
       return result;
     }
-
     //Json to Objects
     Map jsonRaw = json.decode(modulesAsString);
     //Create the Modules from json
@@ -58,9 +59,12 @@ class StorageManager {
       // Loop through cards in decoded json map
       for (var entity in rawMapCards) {
         // Instantiate new card
-        IndexCard y = IndexCard(entity['question'], entity['answer']);
-        y.id = entity['id'];
-        y.lastCorrect = entity['lastCorrect'];
+        IndexCard newCard = IndexCard(entity['question'], entity['answer']);
+        newCard.id = entity['id'];
+        newCard.lastCorrect = entity['lastCorrect'];
+        newCard.cardAnswer = CardAnswer.getById(entity['cardAnswer']);
+        newCard.cardWeight = CardWeight.getById(entity['cardWeight']);
+        newCard.color = entity['color'];
 
         // If the card was answered incorrectly in last iteration
         // increase wrong counter
@@ -69,7 +73,7 @@ class StorageManager {
         }
 
         //Add cards to modules map
-        result[key]!.cards[y.id] = y;
+        result[key]!.cards[newCard.id] = newCard;
       }
 
       //Add the amount of wrong answerd questions
@@ -131,6 +135,8 @@ class StorageManager {
         IndexCard ddd = IndexCard("question $j", "answer $j");
         ddd.lastCorrect = Random().nextBool();
         if (ddd.lastCorrect) correctCardsCounter++;
+        ddd.cardWeight = CardWeight.simple;
+        ddd.cardAnswer = CardAnswer.never;
         x[zzz.id]?.cards[ddd.id] = ddd;
       }
 
@@ -140,10 +146,10 @@ class StorageManager {
     return x;
   }
 
-  void deleteOneModule(String moduleId) async {
+  Future<bool> deleteOneModule(String moduleId) async {
     Map<String, Module> currentData = await readAll();
     currentData.remove(moduleId);
-    saveAll(currentData);
+    return saveAll(currentData);
   }
 
   Future<bool> deleteOneCard(String? moduleId, String cardId) async {
