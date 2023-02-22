@@ -32,7 +32,7 @@ class Module {
     });
     return result;
   }
-/*
+
   Module.fromJson(Map<String, dynamic> json)
       : name = json['name'],
         description = json['description'],
@@ -40,7 +40,7 @@ class Module {
         iterations = json['iterations'],
         cards = IndexCard.fromJson(json['cards']) as Map<String, IndexCard>;
 
-
+  /*
   {
     Module module = Module(json['name'], json['description']);
     module.id = json['id'];

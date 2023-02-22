@@ -26,8 +26,9 @@ class ModuleItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledCard(
-      onTap: () => Future.delayed(const Duration(milliseconds: 50), () => onPressed?.call(module)),
+    return GestureDetector(
+      onTap: () => onPressed?.call(module),
+      child: FilledCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -170,6 +171,7 @@ class ModuleItemCard extends StatelessWidget {
             )
           ],
         ),
+      ),
     );
   }
 }

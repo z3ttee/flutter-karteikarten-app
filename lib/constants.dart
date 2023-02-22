@@ -14,46 +14,6 @@ class Constants {
   static const double sectionMarginX = 16;
 }
 
-enum CardAnswer{
-  never(0),
-  wrong(1),
-  neutral(2),
-  correct(3);
-
-  final int value;
-  const CardAnswer(this.value);
-
-  static getById(int? id){
-    if(id == null) return CardAnswer.never;
-    return CardAnswer.values.elementAt(id);
-  }
-}
-
-enum CardWeight{
-  simple(1, "Leicht"),
-  medium(2, "Mittel"),
-  hard(3, "Schwer");
-
-  final int value;
-  final String name;
-  const CardWeight(this.value, this.name);
-
-  static getByIndex(int? index) {
-    if(index == null) return CardWeight.simple;
-    return CardWeight.values.elementAt(index);
-  }
-
-  static getById(int? id){
-    if(id == null) return CardWeight.simple;
-    return CardWeight.getByIndex(CardWeight.idToIndex(id));
-  }
-
-  static idToIndex(int? id) {
-    if(id == null) return 0;
-    return id - 1;
-  }
-}
-
 enum CardFilter {
   filterAll("Alle"),
   filterWrong("Falsch"),

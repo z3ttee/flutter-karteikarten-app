@@ -24,16 +24,14 @@ class ModuleListFilterSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: Constants.sectionContentGap),
-            child: Text("Karteikarten", style: Theme.of(context).textTheme.titleLarge,),
-          ),
+          Padding(padding: const EdgeInsets.only(left: Constants.sectionMarginX+4, right: Constants.sectionMarginX+4, bottom: Constants.sectionContentGap), child: Text("Karteikarten", style: Theme.of(context).textTheme.titleLarge,),),
           SizedBox(
             height: 40,
             child: ListView(
               scrollDirection: Axis.horizontal,
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
+                const SizedBox(width: Constants.sectionMarginX+4,),
                 ChoiceChip(
                     label: Text(CardFilter.filterAll.value),
                     selected: selectedFilter == CardFilter.filterAll,
@@ -51,6 +49,7 @@ class ModuleListFilterSection extends StatelessWidget {
                     selected: selectedFilter == CardFilter.filterWrong,
                     onSelected: (selected) => _setFilter(CardFilter.filterWrong)
                 ),
+                const SizedBox(width: Constants.sectionMarginX+4,),
               ],
             ),
           )

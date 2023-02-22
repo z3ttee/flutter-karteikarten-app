@@ -1,9 +1,9 @@
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/forms/cardForm.dart';
-import 'package:flutter_karteikarten_app/forms/controllers/weigthInputController.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 
 class CardEditorDialog extends StatefulWidget {
@@ -30,23 +30,8 @@ class _CardEditorState extends State<CardEditorDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  final WeightInputController weightInputController = WeightInputController();
-
-  final StorageManager storageManager = StorageManager();
 
   late bool _isSaving;
-
-  @override
-  void initState() {
-    super.initState();
-    _setIsSaving(false);
-
-    if(widget.indexCard != null) {
-      nameController.text = widget.indexCard!.question;
-      descriptionController.text = widget.indexCard!.answer;
-      weightInputController.value = widget.indexCard!.cardWeight;
-    }
-  }
 
   _closeDialog() {
     Navigator.pop(context);
@@ -66,13 +51,13 @@ class _CardEditorState extends State<CardEditorDialog> {
         card = widget.indexCard ?? IndexCard(nameController.value.text, descriptionController.value.text);
         card.question = nameController.value.text;
         card.answer = descriptionController.value.text;
-        card.cardWeight = weightInputController.value;
       } else {
         // Otherwise create new card
         card = IndexCard(nameController.value.text, descriptionController.value.text);
       }
 
-      storageManager.saveCard(widget.moduleId, card).then((succeeded) {
+      var manager = StorageManager();
+      manager.saveCard(widget.moduleId, card).then((succeeded) {
         if(succeeded) {
           if (kDebugMode) {
             print("[CardEditorDialog] Saved card: ${card.toJson()}");
@@ -98,7 +83,16 @@ class _CardEditorState extends State<CardEditorDialog> {
     setState(() { _isSaving = val; });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _setIsSaving(false);
 
+    if(widget.indexCard != null) {
+      nameController.text = widget.indexCard!.question;
+      descriptionController.text = widget.indexCard!.answer;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +117,6 @@ class _CardEditorState extends State<CardEditorDialog> {
                 formKey: _formKey,
                 nameController: nameController,
                 descriptionController: descriptionController,
-                weightInputController: weightInputController,
               ),
             )
           ],
