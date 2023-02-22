@@ -30,12 +30,13 @@ enum CardAnswer{
 }
 
 enum CardWeight{
-  simple(1),
-  medium(2),
-  hard(3);
+  simple(1, "Leicht"),
+  medium(2, "Mittel"),
+  hard(3, "Schwer");
 
   final int value;
-  const CardWeight(this.value);
+  final String name;
+  const CardWeight(this.value, this.name);
 
   static getByIndex(int? index) {
     if(index == null) return CardWeight.simple;

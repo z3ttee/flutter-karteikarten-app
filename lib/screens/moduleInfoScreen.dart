@@ -363,6 +363,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                       child: IndexCardItemCard(
                         indexCard: indexCard,
                         onEditPressed: (card) => _openCardEditor(_moduleId!, card),
+                        onDeletePressed: (card) => _removeCard(card),
                       ),
                     ),
                   );
