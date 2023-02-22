@@ -408,7 +408,19 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
               label: const Text("Durchlauf starten"),
               icon: const Icon(Icons.school),
             ),
-          ))
+          )),
+          const SizedBox(width: Constants.listGap,),
+          SizedBox(
+            height: 44,
+            width: 44,
+            child: FilledButton.tonal(
+              onPressed: () => _startIteration(),
+              style: FilledButton.styleFrom(
+                padding: EdgeInsets.zero
+              ),
+              child: const Icon(Icons.arrow_drop_down),
+            ),
+          )
         ],
     );
   }

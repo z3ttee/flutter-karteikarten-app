@@ -30,7 +30,6 @@ class Calc {
     }
 
     var progress = reachedPoints/totalPoints;
-    print("$reachedPoints/$totalPoints = $progress");
     return progress;
   }
 
