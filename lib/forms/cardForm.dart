@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/constants.dart';
+import 'package:flutter_karteikarten_app/forms/controllers/weigthInputController.dart';
 
 class CardForm extends StatefulWidget {
   // Form key to uniquely identify the form
@@ -8,12 +10,14 @@ class CardForm extends StatefulWidget {
 
   final TextEditingController nameController;
   final TextEditingController descriptionController;
+  final WeightInputController weightInputController;
 
   const CardForm({
     super.key,
     required this.formKey,
     required this.nameController,
-    required this.descriptionController
+    required this.descriptionController,
+    required this.weightInputController
   });
 
   @override
@@ -24,6 +28,37 @@ class CardForm extends StatefulWidget {
 }
 
 class _CardFormState extends State<CardForm> {
+
+  late final List<bool> _weights;
+  
+  _setSelectedWeight(int index) {
+    widget.weightInputController.value = CardWeight.getByIndex(index);
+  }
+
+  _handleWeightControllerValue() {
+    var index = CardWeight.idToIndex(widget.weightInputController.value.value);
+    setState(() {
+      // The button that is tapped is set to true, and the others to false.
+      for (int i = 0; i < _weights.length; i++) {
+        _weights[i] = i == index;
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _weights = [true, false, false];
+    widget.weightInputController.addListener(_handleWeightControllerValue);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.weightInputController.removeListener(_handleWeightControllerValue);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -59,7 +94,7 @@ class _CardFormState extends State<CardForm> {
             )
           ),
           // Add some space between form fields
-          const SizedBox(height: 12,),
+          const SizedBox(height: Constants.sectionMarginY,),
           // TextFormField for module description
           TextFormField(
             decoration: const InputDecoration(
@@ -77,6 +112,28 @@ class _CardFormState extends State<CardForm> {
               }
               return null;
             }
+          ),
+          const SizedBox(height: Constants.sectionMarginY,),
+          Padding(
+            padding: const EdgeInsets.only(bottom: Constants.listGap*2, left: Constants.listGap, right: Constants.listGap),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text("Wie schwer ist die Frage zu beantworten?", textAlign: TextAlign.left, style: Theme.of(context).textTheme.labelLarge,),
+            ),
+          ),
+          ToggleButtons(
+            borderRadius: BorderRadius.circular(Constants.cardBorderRadius),
+            isSelected: _weights,
+            onPressed: (int index) => _setSelectedWeight(index),
+            constraints: BoxConstraints(
+              minWidth: (MediaQuery.of(context).size.width - 36) / 3,
+              minHeight: 40
+            ),
+            children: const [
+              Text("Leicht"),
+              Text("Mittel"),
+              Text("Schwer")
+            ],
           )
         ],
       ),
