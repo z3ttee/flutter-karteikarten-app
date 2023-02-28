@@ -15,17 +15,7 @@ class IndexCard {
     id = uuid.v4();
   }
 
-  /*
-  IndexCard.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        answer = json['answer'],
-        question = json['question'],
-        lastCorrect = json['lastCorrect'],
-        cardAnswer = CardAnswer.getById(json['cardAnswer']),
-        cardWeight = CardWeight.getById(json['cardWeight']),
-        color = json['color']
-  ;
-*/
+ // implement toJson method for storage handling
   Map<String, dynamic> toJson() => {
         'id': id,
         'question': question,
