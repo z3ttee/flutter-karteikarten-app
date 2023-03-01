@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rxdart/rxdart.dart';
@@ -97,6 +98,44 @@ class _ModuleListState extends State<ModuleListScreen> {
     });
   }
 
+  _exportAllModules() {
+    context.pop();
+
+    String moduleAsJsonString = "test";
+    ClipboardData data = ClipboardData(text: moduleAsJsonString);
+    Clipboard.setData(data).then((value) {
+      Snackbars.message("Exportierte Daten in Zwischenablage gespeichert", context);
+    }).onError((error, stackTrace){
+      Snackbars.message("Ein Fehler ist aufgetreten", context);
+    });
+  }
+
+  _openShareDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text("Exportieren"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text("Möchtest du die gesamte Modulliste exportieren, um diese mit anderen zu teilen?"),
+              SizedBox(height: Constants.listGap,),
+              Text("Falls du nur ein Modul exportieren möchtest, kannst du dies auf der Kartenübersicht des Moduls tun."),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => context.pop(), child: const Text("Abbrechen")),
+            FilledButton.tonal(
+              onPressed: () => _exportAllModules(),
+              child: const Text("Alles exportieren")
+            ),
+          ],
+        );
+      }
+    );
+  }
+
   @override
   void deactivate() {
     if(kDebugMode) print("[ModuleListScreen] Reactivated page. Rerendering...");
@@ -133,11 +172,13 @@ class _ModuleListState extends State<ModuleListScreen> {
             // if snapshot has data
             return CustomScrollView(
               slivers: <Widget>[
+                // App Bar
                 SliverAppBar.medium(
                   title: const Text("Modulübersicht"),
                   centerTitle: true,
+                  // App Bar actions
                   actions: <Widget>[
-                    // IconButton(onPressed: () {}, icon: const Icon(Icons.help)),
+                    IconButton(onPressed: () => _openShareDialog(), icon: const Icon(Icons.ios_share)),
                     kIsWeb ? Padding(padding: const EdgeInsets.only(right: 12), child: IconButton(onPressed: () => html.window.open(Constants.repoUrl, "GitHub Repository"), icon: const Icon(Octicons.mark_github)),) : Container(),
                   ],
                 ),
