@@ -70,6 +70,7 @@ class _CardEditorState extends State<CardEditorDialog> {
       } else {
         // Otherwise create new card
         card = IndexCard(nameController.value.text, descriptionController.value.text);
+        card.cardWeight = weightInputController.value;
       }
 
       storageManager.saveCard(widget.moduleId, card).then((succeeded) {
