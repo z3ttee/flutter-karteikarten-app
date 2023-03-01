@@ -35,6 +35,7 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// Render progress bar to indicate learning progress
           Row(
             children: [
               StreamBuilder(
@@ -52,12 +53,14 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
               ),
             ],
           ),
+          /// Padding between contents
           const SizedBox(height: Constants.listGap,),
+          /// Cards for stats
           Row(
             children: [
               // Expanded(child: StatCard(title: "Karten", value: "${widget.module.cards.length}")),
               // const SizedBox(width: Constants.listGap,),
-              Expanded(child: StatCard(title: "Durchläufe", value: "${widget.module.iterations}")),
+              Expanded(child: StatCard(title: "Durchläufe", value: "${widget.module.iterations ?? 0}")),
               const SizedBox(width: Constants.listGap,),
               Expanded(child: StatCard(title: "Zuletzt richtig", value: "${Calc.calcModuleProgress(widget.module)}", unit: "%",)),
             ],

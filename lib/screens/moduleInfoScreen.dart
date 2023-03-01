@@ -66,7 +66,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   late final StreamSubscription<CardFilter> filterSubscription;
 
-  late final String? _moduleId;
+  late final String? _currentModuleId;
   final StorageManager storageManager = StorageManager();
   final CardsManager cardsManager = CardsManager();
 
@@ -78,7 +78,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     super.initState();
 
     // Extract module id from route
-    _moduleId = widget.activatedRoute.params["moduleId"];
+    _currentModuleId = widget.activatedRoute.params["moduleId"];
 
     // Initialize stream controllers for updating data
     moduleStreamController = BehaviorSubject();
@@ -93,23 +93,23 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     progressStream = progressStreamController.stream;
 
     // Fetch module and push result to stream
-    _fetchAndPushModule(_moduleId);
+    _fetchAndPushModule(_currentModuleId);
 
     // Fetch cards and push result to stream
-    _fetchAndPushCards(_moduleId, CardFilter.filterAll);
+    _fetchAndPushCards(_currentModuleId, CardFilter.filterAll);
 
     // Subscribe to changes to the filter value and re-fetch cards
     filterSubscription = filterStream.listen((filter) {
       currentFilter = filter;
-      _fetchAndPushCards(_moduleId, filter);
+      _fetchAndPushCards(_currentModuleId, filter);
     });
 
     // Listen for notifications to update cards list
     Notifier.set(NotifierName.notifierModuleInfo, () {
       if(kDebugMode) print("[ModuleInfoScreen] Received notification: Updating cards list using current filter.");
-      // If notification was triggered, reload all modules
-      _fetchAndPushModule(_moduleId);
-      _fetchAndPushCards(_moduleId, currentFilter, silently: true);
+      // If notification was triggered, reload all modules and card list
+      _fetchAndPushModule(_currentModuleId);
+      _fetchAndPushCards(_currentModuleId, currentFilter, silently: true);
     });
   }
 
@@ -137,9 +137,11 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     Notifier.unset(NotifierName.notifierModuleInfo);
   }
 
+  /// Fetch a module identified by an id
   _fetchAndPushModule(String? moduleId) {
     if (kDebugMode) print("[ModuleInfoScreen] Loading module info page for moduleId '$moduleId'");
 
+    // Create delayed future to prevent animation stuttering
     return Future<Module?>.delayed(const Duration(milliseconds: 200), () => storageManager.readOneModule(moduleId)).then((value) {
       moduleStreamController.add(value);
 
@@ -149,39 +151,58 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     });
   }
 
+  /// Calculate progress bar for a module
   _fetchAndPushProgress(Module module) {
+    // Asynchronously calculate progress and push the result to re-render UI
     Calc.calcModuleLearningProgress(module).then((value){
       progressStreamController.add(value);
     });
   }
 
+  /// Fetch cards list by moduleId and applied filter
   _fetchAndPushCards(String? moduleId, CardFilter appliedFilter, {bool silently = false, int delay = 0}) {
     if(kDebugMode) print("[ModuleInfoScreen] Loading cards using filter: \"$appliedFilter\"");
 
+    // Push loading state to the cards stream to conditionally show loading indicator
+    // The loading indicator is shown, when the fetch is not done silently (silently = false)
+    // as per default
     cardStreamController.add(_CardListState(isLoading: !silently, cards: currentCardsState));
+
+    // Create a delayed future to artificially slow the app down (this can reduce stuttering of
+    // animations as the UI is not re-rendered that frequently)
     return Future<List<IndexCard>>.delayed(Duration(milliseconds: !silently ? 250 : delay), () {
       if(appliedFilter == CardFilter.filterAll) {
+        // Based on the applied filter, fetch all cards (wrong and correct)
         return cardsManager.getAllCards(moduleId);
       } else if(appliedFilter == CardFilter.filterCorrect) {
+        // Based on the applied filter, fetch only correctly answered cards
         return cardsManager.getCorrectCards(moduleId);
       } else if(appliedFilter == CardFilter.filterWrong) {
+        // Based on the applied filter, fetch only wrongly answered cards
         return cardsManager.getWrongCards(moduleId);
       } else {
+        // If the selected filter is not valid or unknown, return empty list
         return [];
       }
-    }).then((value) {
+    }).then((cards) {
       // Save current state
-      currentCardsState = value;
+      currentCardsState = cards;
       // Push to stream on success
-      cardStreamController.add(_CardListState(isLoading: false, cards: value));
+      cardStreamController.add(_CardListState(isLoading: false, cards: cards));
     });
   }
 
+  /// Open editor to edit the current module
   _openModuleEditor(Module? module) {
+    // Call native showDialog() provided by flutter
     showDialog(
       context: context,
+      // Use the custom CardEditorDialog widget
       builder: (ctx) => ModuleEditorDialog(
+        // Provide module data to set editor into edit-mode
         module: module,
+        // Callback event when the module state has changed (this happens
+        // when a new module was created or an existing one was updated)
         onDidChange: (module) {
           // Notify module list page that the module data has changed
           Notifier.notify(NotifierName.notifierModuleList);
@@ -192,46 +213,84 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     );
   }
 
+  /// Open editor to edit or create a new index card
   _openCardEditor(String moduleId, [IndexCard? indexCard]) {
+    // Call native showDialog() provided by flutter
     showDialog(
       context: context,
+      // Use the custom CardEditorDialog widget
       builder: (ctx) => CardEditorDialog(
+        // Provide module's id
         moduleId: moduleId,
+        // Provide card data, especially if the editor should be put into
+        // edit-mode (when card already exists and needs to be edited)
         indexCard: indexCard,
+        // Callback event when the card state has changed (this happens
+        // when a new card was created or an existing one was updated)
         onDidChange: (card) {
-          _fetchAndPushModule(_moduleId);
-          _fetchAndPushCards(_moduleId, currentFilter, silently: true);
+          // Notify module list page that the module data has changed (cards count adjusted)
+          Notifier.notify(NotifierName.notifierModuleList);
+
+          // If changes occured, reload module and cards list
+          _fetchAndPushModule(_currentModuleId);
+          _fetchAndPushCards(_currentModuleId, currentFilter, silently: true);
         },
       ),
     );
   }
 
+  /// Remove a card from storage
   _removeCard(IndexCard card) {
-    storageManager.deleteOneCard(_moduleId, card.id).then((value) {
+    // Call storageManager to delete the selected card
+    storageManager.deleteOneCard(_currentModuleId, card.id).then((deleted) {
+      // Check if card deletion was successful
+      if(!deleted) {
+        Snackbars.message("Karte konnte nicht gelöscht werden", context);
+        return;
+      }
+
+      // Notify module list page that the module data has changed (cards count adjusted)
+      Notifier.notify(NotifierName.notifierModuleList);
+
+      // If it was successful, reload module and card list and show
+      // a snackbar notifying the user
       Snackbars.message("Karte gelöscht", context);
-      _fetchAndPushModule(_moduleId);
-      _fetchAndPushCards(_moduleId, currentFilter, silently: true);
+      _fetchAndPushModule(_currentModuleId);
+      _fetchAndPushCards(_currentModuleId, currentFilter, silently: true);
+    }).onError((error, stackTrace){
+      // Handle deletion errors
+      Snackbars.error("Ein Fehler ist aufgetreten", context);
+      if(kDebugMode) print(error);
     });
   }
 
+  /// Reset selected list filters
   _resetFilter() {
+    // Push the default filter to the filter stream to update UI
     filterStreamController.add(CardFilter.filterAll);
   }
 
+  /// Navigate back to the module list
   _navigateHome() {
+    // Check if there is a page before the current page in the
+    // navigation stack (user navigated here via parent page)
     if(context.canPop()) {
       // If the context can pop this page,
       // then do this to navigate back to previous page
       context.pop();
     } else {
-      // Use goNamed() to not add this info route to the
-      // routing history.
+      // Use goNamed() to not add the current page (module info) to the
+      // routing history, so that the home page would be the new "first"
+      // page in navigation stack
       context.goNamed(RouteName.routeHome.value);
     }
   }
 
+  /// Start a new iteration
   _startIteration() {
-    context.pushNamed(RouteName.routeIteration.value, params: { "moduleId": _moduleId! });
+    // To start a new iteration, navigate to iteration screen and
+    // pass the module id to the route via parameters
+    context.pushNamed(RouteName.routeIteration.value, params: { "moduleId": _currentModuleId! });
   }
 
   @override
@@ -286,6 +345,10 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           /// If the cards are still loading, show stats and filter together with a loading indicator
           if(isLoading) {
             return ListView(
+              // This physics prevent the overscroll effect on mobile devices.
+              // Normal behaviour: On mobile devices, the page scroll further and revealing empty space
+              // Because of the card at the top of the page (as background) a bug would appear. This is
+              // prevented using this physics
               physics: const ClampingScrollPhysics(),
               children: [
                 _renderTopSection(module),
@@ -362,7 +425,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                       background: const DismissToDeleteBackground(),
                       child: IndexCardItemCard(
                         indexCard: indexCard,
-                        onEditPressed: (card) => _openCardEditor(_moduleId!, card),
+                        onEditPressed: (card) => _openCardEditor(_currentModuleId!, card),
                         onDeletePressed: (card) => _removeCard(card),
                       ),
                     ),
@@ -410,12 +473,16 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
             ),
           )),
           const SizedBox(width: Constants.listGap,),
-          SizedBox(
+          // Render button for selecting a mode
+          // This is currently a planned feature and not implemented
+          // in production, so it is only shown when app is in debug mode
+          !kDebugMode ? Container() : SizedBox(
             height: 44,
             width: 44,
             child: FilledButton.tonal(
               onPressed: () => _startIteration(),
               style: FilledButton.styleFrom(
+                // Set 0 padding, to have a icon button with tonal colour
                 padding: EdgeInsets.zero
               ),
               child: const Icon(Icons.arrow_drop_down),
@@ -429,6 +496,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   _renderStatsSection(Module module) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Constants.sectionMarginY),
+      /// Show custom widget for stats
       child: ModuleStatisticsSection(module: module, progress: progressStream,),
     );
   }
@@ -446,9 +514,11 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     );
   }
 
+  /// Render top section of the info page that contains stats
   _renderTopSection(Module module) {
     return Column(
       children: [
+        /// Card as background containing stats
         Card(
           elevation: 1,
           shadowColor: Colors.transparent,
@@ -457,6 +527,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
               side: BorderSide(width: 0, color: Colors.transparent),
               borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24), bottomRight: Radius.circular(24))
           ),
+          /// Stats content
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,7 +543,9 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    /// Basic stats (e.g.: Iteration count and last correct percentage)
                     Padding(padding: const EdgeInsets.only(bottom: Constants.sectionMarginY), child: _renderStatsSection(module),),
+                    /// Render the start new iteration buttons
                     _renderStartButton()
                   ],
                 ),
@@ -480,6 +553,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
             ],
           ),
         ),
+        /// Filter section
         Padding(
           padding: const EdgeInsets.only(
             left: Constants.sectionMarginX,
