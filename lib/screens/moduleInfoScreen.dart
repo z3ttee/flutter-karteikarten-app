@@ -619,6 +619,8 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    /// Module description
+                    module.description == null ? Container() : Padding(padding: const EdgeInsets.only(top: Constants.listGap), child: Text(module.description!, style: Theme.of(context).textTheme.labelLarge,),),
                     /// Basic stats (e.g.: Iteration count and last correct percentage)
                     Padding(padding: const EdgeInsets.only(bottom: Constants.sectionMarginY), child: _renderStatsSection(module),),
                     /// Render the start new iteration buttons
