@@ -222,7 +222,8 @@ class StorageManager {
       Map jsonRaw = jsonDecode(data);
       jsonRaw.forEach((key, value) {
         if((value['name']== null) || (value['iterations']) == null) return;
-        valid = true; return;
+        valid = true;
+        return;
       });
     }
     catch(e){
