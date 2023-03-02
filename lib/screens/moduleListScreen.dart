@@ -98,10 +98,10 @@ class _ModuleListState extends State<ModuleListScreen> {
     });
   }
 
-  _exportAllModules() {
+  _exportAllModules() async {
     context.pop();
 
-    String moduleAsJsonString = "test";
+    String moduleAsJsonString = await storageManager.exportAll();
     ClipboardData data = ClipboardData(text: moduleAsJsonString);
     Clipboard.setData(data).then((value) {
       Snackbars.message("Exportierte Daten in Zwischenablage gespeichert", context);
