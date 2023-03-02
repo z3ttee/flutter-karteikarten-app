@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:go_router/go_router.dart';
 
 import '../constants.dart';
@@ -23,6 +24,7 @@ class _ImportModuleDialogState extends State<ImportModuleDialog> {
 
   late final GlobalKey<FormState> formKey;
   late final TextEditingController importInputController;
+  final StorageManager storageManager = StorageManager();
 
   _dismiss(String? value) {
     if(!context.canPop()) return;
@@ -40,6 +42,7 @@ class _ImportModuleDialogState extends State<ImportModuleDialog> {
   /// Validate json input. Return string on error, otherwise null is to be returned
   String? _validateJson(String? value) {
     if(value == null || value.isEmpty) return "Dieses Feld wird benötigt.";
+    if(!storageManager.checkValidImport(value)) return "Falsches Format";
     return null;
   }
 
