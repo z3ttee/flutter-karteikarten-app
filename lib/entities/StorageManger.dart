@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -202,18 +201,33 @@ class StorageManager {
     return result;
   }
 
-  Future<bool> completeImport(String data) async{
+  Future<bool> import(String data) async{
+    if(!checkValidImport(data)) return false;
 
-    try{
+    Map<String, Module> importData = convertFromJson(data);
+    Map<String,Module> currentData = await readAll();
 
-    }catch(e){
+    importData.forEach((key, value) {
+      currentData[value.id] = value;
+    });
 
-    }
-    return true;
+
+    return await saveAll(currentData);
   }
 
-  Future<bool> moduleImport(String data) async{
+  bool checkValidImport(String data){
 
-    return true;
+    bool valid = false;
+    try {
+      Map jsonRaw = jsonDecode(data);
+      jsonRaw.forEach((key, value) {
+        if((value['name']== null) || (value['iterations']) == null) return;
+        valid = true; return;
+      });
+    }
+    catch(e){
+      return valid;
+    }
+    return valid;
   }
 }

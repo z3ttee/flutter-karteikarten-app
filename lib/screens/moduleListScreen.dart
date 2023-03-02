@@ -120,8 +120,10 @@ class _ModuleListState extends State<ModuleListScreen> {
     });
   }
 
-  _importModules(String jsonAsString) {
+  _importModules(String jsonAsString) async {
     if(kDebugMode) print(jsonAsString);
+    return await storageManager.import(jsonAsString);
+    storageManager.import(jsonAsString).onError((error, stackTrace) { print(error); return true;});
   }
 
   _openShareDialog() {
