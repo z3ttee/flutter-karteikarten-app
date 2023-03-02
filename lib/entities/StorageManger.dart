@@ -149,17 +149,22 @@ class StorageManager {
     return jsonEncode(result);
   }
 
-  Future<String> exportModule(String moduleId) async{
-    Module module = (await readOneModule(moduleId)) as Module;
-    module.correctCards = 0;
-    module.iterations = 0;
-    module.cards.forEach((key, value) {
-      value.cardAnswer = CardAnswer.never;
-      value.lastCorrect = false;
+  Future<String> exportModule(String moduleId) async {
+    return readOneModule(moduleId).then((module){
+      if(module == null) return "";
+      module.correctCards = 0;
+      module.iterations = 0;
+      module.cards.forEach((key, value) {
+        value.cardAnswer = CardAnswer.never;
+        value.lastCorrect = false;
+      });
+
+      Map<String, Module> value= {};
+      value[module.id] = module;
+      return jsonEncode(value);
+    }).onError((error, stackTrace){
+      return "";
     });
-    Map<String, Module> value= {};
-    value[module.id] = module;
-    return jsonEncode(value) ;
   }
 
   Map<String, Module> convertFromJson(String modulesAsString){
@@ -212,7 +217,6 @@ class StorageManager {
     importData.forEach((key, value) {
       currentData[value.id] = value;
     });
-
 
     return await saveAll(currentData);
   }
