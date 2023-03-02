@@ -1,7 +1,7 @@
 
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/screens/iterationScreen.dart';
-import 'package:flutter_karteikarten_app/screens/moduleInfoScreen.dart';
+import 'package:flutter_karteikarten_app/screens/module-info/moduleInfoScreen.dart';
 import 'package:flutter_karteikarten_app/screens/moduleListScreen.dart';
 import 'package:go_router/go_router.dart';
 

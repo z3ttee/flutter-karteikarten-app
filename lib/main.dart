@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         // Material Design 3 verwenden
         useMaterial3: true,
-        colorSchemeSeed: Colors.purple,
+        colorSchemeSeed: const Color(0xff6750a4),
         // Use Material Design 3 typography settings
         typography: Typography.material2021(),
         cardTheme: const CardTheme(

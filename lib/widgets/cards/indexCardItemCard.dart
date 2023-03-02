@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_karteikarten_app/constants.dart';
 import 'package:flutter_karteikarten_app/entities/Card.dart';
@@ -8,6 +10,8 @@ class IndexCardItemCard extends StatelessWidget {
 
   /// Module data to display in the card
   final IndexCard indexCard;
+
+  final bool answerRevealed;
 
   /// Callback function to handle clicks on the card
   final ValueSetter<IndexCard>? onPressed;
@@ -20,6 +24,7 @@ class IndexCardItemCard extends StatelessWidget {
   const IndexCardItemCard({
     super.key,
     required this.indexCard,
+    required this.answerRevealed,
     this.onPressed,
     this.onEditPressed,
     this.onDeletePressed,
@@ -83,18 +88,15 @@ class IndexCardItemCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  /// Question
                   Text(
                     indexCard.question,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                  Text(
-                    indexCard.answer,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  /// Answer
+                  _renderAnswer(indexCard.answer, answerRevealed, context),
                 ],
               )
           ),
@@ -106,7 +108,6 @@ class IndexCardItemCard extends StatelessWidget {
               Chip(
                 label: Text(indexCard.cardWeight.name),
                 labelStyle: Theme.of(context).textTheme.labelSmall,
-
               ),
             ],
           ),
@@ -121,6 +122,34 @@ class IndexCardItemCard extends StatelessWidget {
           )
         ],
       ),
+    );
+  }
+
+  _renderAnswer(String description, bool revealed, BuildContext context) {
+    if(revealed) {
+      return Text(
+        description,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: Theme.of(context).textTheme.bodySmall,
+      );
+    }
+
+    return ImageFiltered(
+      imageFilter: ImageFilter.blur(sigmaX: Constants.cardAnswerBlur, sigmaY: Constants.cardAnswerBlur),
+      child: Text(
+        description,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    );
+
+    return SizedBox(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Text(description),
+      )
     );
   }
 }

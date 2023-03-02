@@ -79,7 +79,7 @@ class _ExportModuleDialogState extends State<ExportModuleDialog> {
         TextButton(onPressed: () => _dismiss(), child: const Text("Abbrechen")),
         FilledButton.tonal(
           onPressed: () => _exportAllModules(),
-          child: const Text("Alles exportieren"),
+          child: widget.moduleId == null ? const Text("Alles exportieren") : const Text("Modul exportieren"),
         ),
       ],
     );

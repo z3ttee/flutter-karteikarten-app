@@ -12,6 +12,10 @@ class Constants {
 
   static const double sectionMarginY = 10;
   static const double sectionMarginX = 16;
+
+  static const double bottomSheetTileRadius = 12;
+
+  static const double cardAnswerBlur = 3.5;
 }
 
 enum CardAnswer{
