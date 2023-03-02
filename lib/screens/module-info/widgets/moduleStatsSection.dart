@@ -31,7 +31,7 @@ class _ModuleStatsSectionState extends State<ModuleStatsSection> {
   late final StreamController<double> streamController;
   late final Stream<double> stream;
 
-  double currentVal = 0;
+  double currentVal = -1;
 
   @override
   void didUpdateWidget(covariant ModuleStatsSection oldWidget) {
