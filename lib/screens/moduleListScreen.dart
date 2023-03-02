@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_karteikarten_app/dialogs/importDialog.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rxdart/rxdart.dart';
@@ -97,6 +98,8 @@ class _ModuleListState extends State<ModuleListScreen> {
     storageManager.deleteOneModule(module.id).then((value){
       Snackbars.message("Modul gelöscht", context);
       _fetchAndPushModules();
+    }).onError((error, stackTrace){
+      Snackbars.error("Ein Fehler ist aufgetreten", context);
     });
   }
 
@@ -112,6 +115,7 @@ class _ModuleListState extends State<ModuleListScreen> {
         Snackbars.message("Exportierte Daten in Zwischenablage gespeichert", context);
       });
     }).onError((error, stackTrace){
+      // Handle export errors
       Snackbars.message("Ein Fehler ist aufgetreten", context);
     });
   }
@@ -149,52 +153,18 @@ class _ModuleListState extends State<ModuleListScreen> {
     );
   }
 
+  /// Open import dialog
   _openImportDialog() {
     showDialog(
         context: context,
-        builder: (ctx) {
-          return AlertDialog(
-            title: const Text("Importieren"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("Hier kannst du die Daten einfügen, die aus zuvor exportiert wurden."),
-                const SizedBox(height: Constants.listGap,),
-                TextFormField(
-                  controller: importInputController,
-                  minLines: 3,
-                  maxLines: 6,
-                  decoration: const InputDecoration(
-                    filled: true,
-                    labelText: 'Datensatz zum Importieren *',
-                    floatingLabelBehavior: FloatingLabelBehavior.auto,
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Dieses Feld wird benötigt';
-                    }
-
-                    return null;
-                  },
-                )
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => context.pop(), child: const Text("Abbrechen")),
-              FilledButton.tonal(
-                  onPressed: () {
-                    if(importInputController.value.text.isEmpty) {
-                      return;
-                    }
-
-                    context.pop();
-                    _importModules(importInputController.value.text);
-                  },
-                  child: const Text("Importieren")
-              ),
-            ],
-          );
-        }
+        /// Use custom dialog widget
+        builder: (ctx) => ImportModuleDialog(
+          onDismissed: (data) {
+            // Check if data was provided on dismiss
+            // If true, data was validated and can be imported
+            if(data != null) _importModules(data);
+          },
+        ),
     );
   }
 
