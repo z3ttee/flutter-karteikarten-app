@@ -60,7 +60,7 @@ class _ModuleStatisticsSectionState extends State<ModuleStatisticsSection> {
             children: [
               // Expanded(child: StatCard(title: "Karten", value: "${widget.module.cards.length}")),
               // const SizedBox(width: Constants.listGap,),
-              Expanded(child: StatCard(title: "Durchläufe", value: "${widget.module.iterations ?? 0}")),
+              Expanded(child: StatCard(title: "Durchläufe", value: "${widget.module.iterations}")),
               const SizedBox(width: Constants.listGap,),
               Expanded(child: StatCard(title: "Zuletzt richtig", value: "${Calc.calcModuleProgress(widget.module)}", unit: "%",)),
             ],

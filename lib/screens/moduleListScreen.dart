@@ -33,13 +33,15 @@ class _ModuleListState extends State<ModuleListScreen> {
   late final StreamController<List<Module>> moduleStreamController;
   late final Stream<List<Module>> moduleStream;
 
+  final TextEditingController importInputController = TextEditingController();
+
   final StorageManager storageManager = StorageManager();
   
   void _navigateToModule(String moduleId) {
     context.pushNamed(RouteName.routeModuleInfo.value, params: { "moduleId": moduleId });
   }
 
-  _fetchAndPushModules() {
+  _fetchAndPushModules({bool silently = false}) {
     if (kDebugMode) {
       print("[ModuleListScreen] Fetching modules...");
     }
@@ -98,16 +100,24 @@ class _ModuleListState extends State<ModuleListScreen> {
     });
   }
 
-  _exportAllModules() async {
-    context.pop();
-
-    String moduleAsJsonString = await storageManager.exportAll();
-    ClipboardData data = ClipboardData(text: moduleAsJsonString);
-    Clipboard.setData(data).then((value) {
-      Snackbars.message("Exportierte Daten in Zwischenablage gespeichert", context);
+  /// Export full module list into the users clipboard
+  _exportAllModules() {
+    // Call storage manager to export all modules
+    storageManager.exportAll().then((value){
+      // On success, module list is retrieved as json string
+      // This string is now copied to clipboard
+      ClipboardData data = ClipboardData(text: value);
+      Clipboard.setData(data).then((value) {
+        // Show snackbar on success
+        Snackbars.message("Exportierte Daten in Zwischenablage gespeichert", context);
+      });
     }).onError((error, stackTrace){
       Snackbars.message("Ein Fehler ist aufgetreten", context);
     });
+  }
+
+  _importModules(String jsonAsString) {
+    if(kDebugMode) print(jsonAsString);
   }
 
   _openShareDialog() {
@@ -127,8 +137,11 @@ class _ModuleListState extends State<ModuleListScreen> {
           actions: [
             TextButton(onPressed: () => context.pop(), child: const Text("Abbrechen")),
             FilledButton.tonal(
-              onPressed: () => _exportAllModules(),
-              child: const Text("Alles exportieren")
+              onPressed: () {
+                context.pop();
+                _exportAllModules();
+              },
+              child: const Text("Alles exportieren"),
             ),
           ],
         );
@@ -136,11 +149,53 @@ class _ModuleListState extends State<ModuleListScreen> {
     );
   }
 
-  @override
-  void deactivate() {
-    if(kDebugMode) print("[ModuleListScreen] Reactivated page. Rerendering...");
-    super.deactivate();
-    setState(() {});
+  _openImportDialog() {
+    showDialog(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text("Importieren"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Hier kannst du die Daten einfügen, die aus zuvor exportiert wurden."),
+                const SizedBox(height: Constants.listGap,),
+                TextFormField(
+                  controller: importInputController,
+                  minLines: 3,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    filled: true,
+                    labelText: 'Datensatz zum Importieren *',
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Dieses Feld wird benötigt';
+                    }
+
+                    return null;
+                  },
+                )
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => context.pop(), child: const Text("Abbrechen")),
+              FilledButton.tonal(
+                  onPressed: () {
+                    if(importInputController.value.text.isEmpty) {
+                      return;
+                    }
+
+                    context.pop();
+                    _importModules(importInputController.value.text);
+                  },
+                  child: const Text("Importieren")
+              ),
+            ],
+          );
+        }
+    );
   }
 
   @override
@@ -178,6 +233,7 @@ class _ModuleListState extends State<ModuleListScreen> {
                   centerTitle: true,
                   // App Bar actions
                   actions: <Widget>[
+                    IconButton(onPressed: () => _openImportDialog(), icon: const Icon(Icons.download_rounded)),
                     IconButton(onPressed: () => _openShareDialog(), icon: const Icon(Icons.ios_share)),
                     kIsWeb ? Padding(padding: const EdgeInsets.only(right: 12), child: IconButton(onPressed: () => html.window.open(Constants.repoUrl, "GitHub Repository"), icon: const Icon(Octicons.mark_github)),) : Container(),
                   ],
