@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_karteikarten_app/dialogs/exportDialog.dart';
 import 'package:flutter_karteikarten_app/dialogs/importDialog.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:go_router/go_router.dart';
@@ -144,22 +145,7 @@ class _ModuleListState extends State<ModuleListScreen> {
     });
   }
 
-  /// Export full module list into the users clipboard
-  _exportAllModules() {
-    // Call storage manager to export all modules
-    storageManager.exportAll().then((value){
-      // On success, module list is retrieved as json string
-      // This string is now copied to clipboard
-      ClipboardData data = ClipboardData(text: value);
-      Clipboard.setData(data).then((value) {
-        // Show snackbar on success
-        Snackbars.message("Exportierte Daten in Zwischenablage gespeichert", context);
-      });
-    }).onError((error, stackTrace){
-      // Handle export errors
-      Snackbars.message("Ein Fehler ist aufgetreten", context);
-    });
-  }
+
 
   /// Import json string to transfer modules
   _importModules(String jsonAsString) {
@@ -191,29 +177,7 @@ class _ModuleListState extends State<ModuleListScreen> {
   _openShareDialog() {
     showDialog(
       context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text("Exportieren"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text("Möchtest du die gesamte Modulliste exportieren, um diese mit anderen zu teilen?"),
-              SizedBox(height: Constants.listGap,),
-              Text("Falls du nur ein Modul exportieren möchtest, kannst du dies auf der Kartenübersicht des Moduls tun."),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => context.pop(), child: const Text("Abbrechen")),
-            FilledButton.tonal(
-              onPressed: () {
-                context.pop();
-                _exportAllModules();
-              },
-              child: const Text("Alles exportieren"),
-            ),
-          ],
-        );
-      }
+      builder: (ctx) => const ExportModuleDialog()
     );
   }
 

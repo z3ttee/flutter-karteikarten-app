@@ -18,6 +18,7 @@ import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/indexCardItemCard.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rxdart/rxdart.dart';
+import '../dialogs/exportDialog.dart';
 import '../entities/Module.dart';
 
 class ModuleInfoData {
@@ -293,6 +294,81 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     context.pushNamed(RouteName.routeIteration.value, params: { "moduleId": _currentModuleId! });
   }
 
+  /// Open dialog to confirm export
+  _openExportDialog(Module module) {
+    showDialog(
+        context: context,
+        builder: (ctx) => ExportModuleDialog(moduleId: module.id,),
+    );
+  }
+
+  /// Delete the module
+  _deleteModule(Module module) {
+    storageManager.deleteOneModule(module.id).then((value){
+      _navigateHome();
+      Snackbars.message("Modul gelöscht", context);
+    }).onError((error, stackTrace){
+      Snackbars.error("Ein Fehler ist aufgetreten", context);
+    });
+  }
+
+  /// Open bottom sheet for module options like editing and exporting the module
+  _showModuleBottomSheet(Module module) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.sectionMarginX),
+          child: SizedBox(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.edit),
+                  title: const Text("Bearbeiten"),
+                  subtitle: const Text("Modulinformationen anpassen"),
+                  onTap: () {
+                    ctx.pop();
+                    _openModuleEditor(module);
+                  },
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(24))
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete),
+                  title: const Text("Löschen"),
+                  subtitle: const Text("Modul löschen"),
+                  onTap: () {
+                    ctx.pop();
+                    _deleteModule(module);
+                  },
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(24))
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.ios_share),
+                  title: const Text("Exportieren"),
+                  subtitle: const Text("Modul zum Teilen exportieren"),
+                  onTap: () {
+                    ctx.pop();
+                    _openExportDialog(module);
+                  },
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(24))
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -324,8 +400,8 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: IconButton(
-              onPressed: () => _openModuleEditor(module),
-              icon: const Icon(Icons.edit)
+              onPressed: () => _showModuleBottomSheet(module),
+              icon: const Icon(Icons.more_vert)
             ),
           )
         ],
