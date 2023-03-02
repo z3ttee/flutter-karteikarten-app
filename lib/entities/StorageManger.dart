@@ -150,14 +150,16 @@ class StorageManager {
   }
 
   Future<String> exportModule(String moduleId) async{
-    Module result = (await readOneModule(moduleId)) as Module;
-    result.correctCards = 0;
-    result.iterations = 0;
-    result.cards.forEach((key, value) {
+    Module module = (await readOneModule(moduleId)) as Module;
+    module.correctCards = 0;
+    module.iterations = 0;
+    module.cards.forEach((key, value) {
       value.cardAnswer = CardAnswer.never;
       value.lastCorrect = false;
     });
-    return jsonEncode(result) ;
+    Map<String, Module> value= {};
+    value[module.id] = module;
+    return jsonEncode(value) ;
   }
 
   Map<String, Module> convertFromJson(String modulesAsString){
