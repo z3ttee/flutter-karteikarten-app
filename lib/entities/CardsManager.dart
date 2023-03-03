@@ -9,8 +9,10 @@ class CardsManager {
     _storageManager = StorageManager();
   }
 
+  ///recive all saved Cards
   Future<List<IndexCard>> getAllCards(String? moduleId) async {
     if (moduleId == null) return [];
+    //init sharedpreferences
     Map<String, Module>? currentData = await _storageManager.readAll();
 
     Map<String, IndexCard> cards = currentData[moduleId]!.cards;
@@ -21,6 +23,7 @@ class CardsManager {
     return result;
   }
 
+  ///retrieve all wrong answered Cards
   Future<List<IndexCard>> getWrongCards(String? moduleId) async {
     if (moduleId == null) return [];
     Map<String, Module>? currentData = await _storageManager.readAll();
@@ -35,6 +38,7 @@ class CardsManager {
     return result;
   }
 
+  ///retrieve all correct answered Cards
   Future<List<IndexCard>> getCorrectCards(String? moduleId) async {
     if (moduleId == null) return [];
     Map<String, Module>? currentData = await _storageManager.readAll();

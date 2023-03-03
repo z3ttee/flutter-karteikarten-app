@@ -30,8 +30,7 @@ class StorageManager {
     // Read json string from shared preferences
     final String? modulesAsString = prefs.getString("data");
     // Create empty instance of a map
-    Map<String, Module> result = {};
-
+    Map<String,Module> result = {};
 
     // Check if list exists (a valid string was returned previously).
     // If not return the empty instance from above
@@ -44,41 +43,8 @@ class StorageManager {
       // If not in debug mode, return empty list
       return result;
     }
-    //Json to Objects
-    Map jsonRaw = json.decode(modulesAsString);
-    //Create the Modules from json
-    jsonRaw.forEach((key, value) {
-      result[key] = Module(value['name'], value['description']);
-      result[key]?.id = value['id'];
-      result[key]?.iterations = value['iterations'];
-      //print(value);
-      List rawMapCards = value['cards'];
-      //Count the last correctly answered cards
-      int correctCardsCounter = 0;
+    result = convertFromJson(modulesAsString);
 
-      // Loop through cards in decoded json map
-      for (var entity in rawMapCards) {
-        // Instantiate new card
-        IndexCard newCard = IndexCard(entity['question'], entity['answer']);
-        newCard.id = entity['id'];
-        newCard.lastCorrect = entity['lastCorrect'];
-        newCard.cardAnswer = CardAnswer.getById(entity['cardAnswer']);
-        newCard.cardWeight = CardWeight.getById(entity['cardWeight']);
-        newCard.color = entity['color'];
-
-        // If the card was answered incorrectly in last iteration
-        // increase wrong counter
-        if ((entity['lastCorrect'] as bool)) {
-          correctCardsCounter++;
-        }
-
-        //Add cards to modules map
-        result[key]!.cards[newCard.id] = newCard;
-      }
-
-      //Add the amount of wrong answerd questions
-      result[key]!.correctCards = correctCardsCounter;
-    });
     return result;
   }
 
@@ -166,5 +132,109 @@ class StorageManager {
       x[zzz.id] = zzz;
     }
     return Future.value(x);
+  }
+
+  Future<String> exportAll() async {
+    Map<String,Module> result =  await readAll();
+
+    result.forEach((key, module) {
+      module.iterations = 0;
+      module.correctCards = 0;
+      module.cards.forEach((keyCard, card) {
+        card.lastCorrect = false;
+        card.cardAnswer = CardAnswer.never;
+      });
+    });
+
+    return jsonEncode(result);
+  }
+
+  Future<String> exportModule(String moduleId) async {
+    return readOneModule(moduleId).then((module){
+      if(module == null) return "";
+      module.correctCards = 0;
+      module.iterations = 0;
+      module.cards.forEach((key, value) {
+        value.cardAnswer = CardAnswer.never;
+        value.lastCorrect = false;
+      });
+
+      Map<String, Module> value= {};
+      value[module.id] = module;
+      return jsonEncode(value);
+    }).onError((error, stackTrace){
+      return "";
+    });
+  }
+
+  Map<String, Module> convertFromJson(String modulesAsString){
+    Map<String, Module> result = {};
+
+    //Json to Objects
+    Map jsonRaw = json.decode(modulesAsString);
+    //Create the Modules from json
+    jsonRaw.forEach((key, value) {
+      result[key] = Module(value['name'], value['description']);
+      result[key]?.id = value['id'];
+      result[key]?.iterations = value['iterations'];
+      //print(value);
+      List rawMapCards = value['cards'];
+      //Count the last correctly answered cards
+      int correctCardsCounter = 0;
+
+      // Loop through cards in decoded json map
+      for (var entity in rawMapCards) {
+        // Instantiate new card
+        IndexCard newCard = IndexCard(entity['question'], entity['answer']);
+        newCard.id = entity['id'];
+        newCard.lastCorrect = entity['lastCorrect'];
+        newCard.cardAnswer = CardAnswer.getById(entity['cardAnswer']);
+        newCard.cardWeight = CardWeight.getById(entity['cardWeight']);
+        newCard.color = entity['color'];
+
+        // If the card was answered incorrectly in last iteration
+        // increase wrong counter
+        if ((entity['lastCorrect'] as bool)) {
+          correctCardsCounter++;
+        }
+
+        //Add cards to modules map
+        result[key]!.cards[newCard.id] = newCard;
+      }
+
+      //Add the amount of wrong answerd questions
+      result[key]!.correctCards = correctCardsCounter;
+    });
+    return result;
+  }
+
+  Future<bool> import(String data) async{
+    if(!checkValidImport(data)) return false;
+
+    Map<String, Module> importData = convertFromJson(data);
+    Map<String,Module> currentData = await readAll();
+
+    importData.forEach((key, value) {
+      currentData[value.id] = value;
+    });
+
+    return await saveAll(currentData);
+  }
+
+  bool checkValidImport(String data){
+
+    bool valid = false;
+    try {
+      Map jsonRaw = jsonDecode(data);
+      jsonRaw.forEach((key, value) {
+        if((value['name']== null) || (value['iterations']) == null) return;
+        valid = true;
+        return;
+      });
+    }
+    catch(e){
+      return valid;
+    }
+    return valid;
   }
 }

@@ -366,26 +366,44 @@ class _IterationScreenState extends State<IterationScreen> {
                               ),
                               /// Buttons row
                               !answerRevealed ? Container() : Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: Constants.sectionMarginX, vertical: Constants.listGap),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    LabeledButton(
-                                      onPressed: () => _markWrong(),
-                                      text: "Falsch",
-                                      icon: Icons.sentiment_dissatisfied_outlined
-                                    ),
-                                    LabeledButton(
-                                        onPressed: () => _markNeutral(),
-                                        text: "Neutral",
-                                        icon: Icons.sentiment_neutral_outlined
-                                    ),
-                                    LabeledButton(
-                                        onPressed: () => _markCorrect(),
-                                        text: "Richtig",
-                                        icon: Icons.sentiment_very_satisfied_outlined
-                                    ),
-                                  ],
+                                padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
+                                child: SizedBox(
+                                  height: 50,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: FittedBox(
+                                          fit: BoxFit.contain,
+                                          child: LabeledButton(
+                                              onPressed: () => _markWrong(),
+                                              text: "Falsch",
+                                              icon: Icons.sentiment_dissatisfied_outlined
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: FittedBox(
+                                          fit: BoxFit.contain,
+                                          child: LabeledButton(
+                                              onPressed: () => _markNeutral(),
+                                              text: "Neutral",
+                                              icon: Icons.sentiment_neutral_outlined
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: FittedBox(
+                                          fit: BoxFit.contain,
+                                          child: LabeledButton(
+                                              onPressed: () => _markCorrect(),
+                                              text: "Richtig",
+                                              icon: Icons.sentiment_very_satisfied_outlined
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               )
                             ],
