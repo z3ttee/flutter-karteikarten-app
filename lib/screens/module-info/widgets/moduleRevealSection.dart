@@ -44,16 +44,10 @@ class _ModuleCardRevealSectionState extends State<ModuleCardRevealSection> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              SizedBox(
-                height: 38,
-                child: FittedBox(
-                  fit: BoxFit.fill,
-                  child: Switch(
-                    value: snapshot.data ?? false,
-                    thumbIcon: thumbIcon,
-                    onChanged: (revealed) => _setRevealed(revealed),
-                  ),
-                ),
+              Switch(
+                value: snapshot.data ?? false,
+                thumbIcon: thumbIcon,
+                onChanged: (revealed) => _setRevealed(revealed),
               ),
               const SizedBox(width: Constants.listGap,),
               const Text("Antworten anzeigen")
