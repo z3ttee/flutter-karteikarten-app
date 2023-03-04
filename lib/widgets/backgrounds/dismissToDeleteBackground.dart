@@ -18,11 +18,11 @@ class DismissToDeleteBackground extends StatelessWidget {
             bottom: 0,
             right: Constants.sectionMarginX
         ),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.only(
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.only(
               topRight: Radius.circular(Constants.cardBorderRadius/2),
               bottomRight: Radius.circular(Constants.cardBorderRadius/2)),
-          color: Theme.of(context).colorScheme.onError,
+          color: Colors.redAccent,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,

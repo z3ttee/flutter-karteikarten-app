@@ -204,7 +204,7 @@ class _IterationScreenState extends State<IterationScreen> {
 
   _showSummary() {
     var dialog = showDialog(context: context, builder: (ctx) => AlertDialog(
-      title: const Text("Coooonnnngratulations!!!!"),
+      title: const Text("Glückwunsch!"),
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -368,7 +368,7 @@ class _IterationScreenState extends State<IterationScreen> {
                               !answerRevealed ? Container() : Padding(
                                 padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
                                 child: SizedBox(
-                                  height: 50,
+                                  height: 64,
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
