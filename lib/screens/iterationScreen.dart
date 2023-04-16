@@ -355,16 +355,24 @@ class _IterationScreenState extends State<IterationScreen> {
                                 height: 256,
                                 child: Card(
                                   child: Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Text(snapshot.data!.question),
-                                        !answerRevealed ? Container() : Padding(
-                                          padding: const EdgeInsets.only(bottom: Constants.listGap),
-                                          child: Text(snapshot.data!.answer),
-                                        )
-                                      ],
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: Constants.listGap),
+                                      child: ListView(
+                                        shrinkWrap: true,
+                                        children: [
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Text(snapshot.data!.question),
+                                              !answerRevealed ? Container() : Padding(
+                                                padding: const EdgeInsets.only(bottom: Constants.listGap),
+                                                child: Text(snapshot.data!.answer),
+                                              )
+                                            ],
+                                          )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
