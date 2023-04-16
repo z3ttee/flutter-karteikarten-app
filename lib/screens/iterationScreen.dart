@@ -331,6 +331,25 @@ class _IterationScreenState extends State<IterationScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text("Schwierigkeit: ", style: Theme.of(context).textTheme.labelSmall,),
+                                    Chip(
+                                      label: SizedBox(
+                                        width: 100,
+                                        child: Center(
+                                          child: Text(snapshot.data!.cardWeight.name),
+                                        ),
+                                      ),
+                                      labelStyle: Theme.of(context).textTheme.labelSmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
                               /// Card
                               SizedBox(
                                 height: 256,
@@ -342,7 +361,7 @@ class _IterationScreenState extends State<IterationScreen> {
                                       children: [
                                         Text(snapshot.data!.question),
                                         !answerRevealed ? Container() : Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
+                                          padding: const EdgeInsets.only(bottom: Constants.listGap),
                                           child: Text(snapshot.data!.answer),
                                         )
                                       ],
