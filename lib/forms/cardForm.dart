@@ -105,7 +105,7 @@ class _CardFormState extends State<CardForm> {
             controller: widget.descriptionController,
             maxLines: 3,
             minLines: 3,
-            maxLength: 250,
+            maxLength: 500,
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Bitte gib einen Wert ein';
