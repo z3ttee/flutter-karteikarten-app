@@ -112,19 +112,25 @@ class StorageManager {
     return x;
   }
 
+  ///Deletes one Module by ID
   Future<bool> deleteOneModule(String moduleId) async {
     Map<String, Module> currentData = await readAll();
     currentData.remove(moduleId);
+    //return the affected module
     return saveAll(currentData);
   }
 
+  ///Deletes one card
   Future<bool> deleteOneCard(String? moduleId, String cardId) async {
     if (moduleId == null) return false;
     Map<String, Module> currentData = await readAll();
+    //delete card
     currentData[moduleId]!.cards.remove(cardId);
+    //save the new object
     return saveAll(currentData);
   }
 
+  ///debug function
   Future<Map<String, Module>> getDummyModules(int y) {
     Map<String, Module> x = {};
     for (int i = 0; i < y; i++) {
@@ -134,9 +140,12 @@ class StorageManager {
     return Future.value(x);
   }
 
+  ///function for JSON Export
   Future<String> exportAll() async {
+    //read all cards
     Map<String,Module> result =  await readAll();
 
+    //reset the specific counter
     result.forEach((key, module) {
       module.iterations = 0;
       module.correctCards = 0;
@@ -146,9 +155,11 @@ class StorageManager {
       });
     });
 
+    //return json object
     return jsonEncode(result);
   }
 
+  ///Export one module
   Future<String> exportModule(String moduleId) async {
     return readOneModule(moduleId).then((module){
       if(module == null) return "";
@@ -167,6 +178,7 @@ class StorageManager {
     });
   }
 
+  ///convert fuction
   Map<String, Module> convertFromJson(String modulesAsString){
     Map<String, Module> result = {};
 
@@ -208,6 +220,7 @@ class StorageManager {
     return result;
   }
 
+  ///JSON Import function
   Future<bool> import(String data) async{
     if(!checkValidImport(data)) return false;
 
@@ -221,6 +234,7 @@ class StorageManager {
     return await saveAll(currentData);
   }
 
+/// validate the import json
   bool checkValidImport(String data){
 
     bool valid = false;
