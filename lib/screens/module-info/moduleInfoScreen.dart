@@ -10,6 +10,7 @@ import 'package:flutter_karteikarten_app/entities/CardsManager.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/screens/module-info/widgets/moduleInfoHeader.dart';
+import 'package:flutter_karteikarten_app/screens/module-info/widgets/moduleTitle.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 import 'package:flutter_karteikarten_app/widgets/backgrounds/dismissToDeleteBackground.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
@@ -390,7 +391,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     return Scaffold(
       /// Render appbar with back button and module name as title
       appBar: AppBar(
-        title: Text(module.name),
+        title: ModuleTitle(moduleName: module.name,),
         centerTitle: true,
         elevation: 1,
         leading: BackButton(
