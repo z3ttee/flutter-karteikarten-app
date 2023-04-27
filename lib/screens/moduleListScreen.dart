@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flutter_karteikarten_app/dialogs/confirmDeleteDialog.dart';
 import 'package:flutter_karteikarten_app/dialogs/exportDialog.dart';
 import 'package:flutter_karteikarten_app/dialogs/importDialog.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
@@ -132,9 +132,26 @@ class _ModuleListState extends State<ModuleListScreen> {
   }
 
   /// Delete a module
-  _deleteModule(Module module) {
+  Future<bool> _deleteModule(Module module) async {
+    return await showDialog(
+      context: context,
+      builder: (ctx) => ConfirmDeleteDialog(
+        title: "Modul löschen?",
+        message: "Möchtest du das Modul wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden.",
+        onConfirmed: (confirmed) {
+          if(confirmed) {
+            ctx.pop(true);
+          } else {
+            ctx.pop(false);
+          }
+        },
+      ),
+    );
+  }
+
+  _forceDeleteModule(String moduleId) {
     // Call storage manager to delete a module identified by its id
-    storageManager.deleteOneModule(module.id).then((value){
+    storageManager.deleteOneModule(moduleId).then((value){
       // Show snackbar
       Snackbars.message("Modul gelöscht", context);
       // Reload module list
@@ -144,8 +161,6 @@ class _ModuleListState extends State<ModuleListScreen> {
       Snackbars.error("Ein Fehler ist aufgetreten", context);
     });
   }
-
-
 
   /// Import json string to transfer modules
   _importModules(String jsonAsString) {
@@ -264,7 +279,7 @@ class _ModuleListState extends State<ModuleListScreen> {
           key: Key(module.id),
           background: const DismissToDeleteBackground(),
           direction: DismissDirection.endToStart,
-          onDismissed: (direction) => _deleteModule(module),
+          onDismissed: (direction) => _forceDeleteModule(module.id),
           child: ModuleItemCard(
             module: module,
             filled: true,
@@ -272,7 +287,8 @@ class _ModuleListState extends State<ModuleListScreen> {
             onEditPressed: (module) {
               _openModuleEditor(context, module);
             },
-          )
+          ),
+          confirmDismiss: (direction) => _deleteModule(module),
         ),
 
       );

@@ -10,7 +10,6 @@ import 'package:flutter_karteikarten_app/entities/CardsManager.dart';
 import 'package:flutter_karteikarten_app/entities/StorageManger.dart';
 import 'package:flutter_karteikarten_app/notifiers/dataNotifiers.dart';
 import 'package:flutter_karteikarten_app/screens/module-info/widgets/moduleInfoHeader.dart';
-import 'package:flutter_karteikarten_app/utils/calc.dart';
 import 'package:flutter_karteikarten_app/utils/snackbars.dart';
 import 'package:flutter_karteikarten_app/widgets/backgrounds/dismissToDeleteBackground.dart';
 import 'package:flutter_karteikarten_app/widgets/cards/errorCard.dart';
@@ -18,6 +17,7 @@ import 'package:flutter_karteikarten_app/widgets/cards/indexCardItemCard.dart';
 import 'package:flutter_karteikarten_app/widgets/sheets/moduleBottomSheet.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rxdart/rxdart.dart';
+import '../../dialogs/confirmDeleteDialog.dart';
 import '../../dialogs/exportDialog.dart';
 import '../../entities/Module.dart';
 
@@ -243,9 +243,25 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   }
 
   /// Remove a card from storage
-  _removeCard(IndexCard card) {
+  Future<bool> _removeCard(IndexCard card) async {
+    return await showDialog(
+      context: context, 
+      builder: (ctx) => ConfirmDeleteDialog(
+        title: "Karteikarte löschen?",
+        message: "Möchtest du die Karteikarte wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden.", 
+        onConfirmed: (confirmed) {
+          ctx.pop(confirmed);
+          if(confirmed) {
+            _forceRemoveCard(card.id);
+          }
+        }
+      )
+    );
+  }
+  
+  _forceRemoveCard(String cardId) {
     // Call storageManager to delete the selected card
-    storageManager.deleteOneCard(_currentModuleId, card.id).then((deleted) {
+    return storageManager.deleteOneCard(_currentModuleId, cardId).then((deleted) {
       // Check if card deletion was successful
       if(!deleted) {
         Snackbars.message("Karte konnte nicht gelöscht werden", context);
@@ -311,7 +327,23 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
 
   /// Delete the module
   _deleteModule(Module module) {
-    storageManager.deleteOneModule(module.id).then((value){
+    showDialog(
+      context: context,
+      builder: (ctx) => ConfirmDeleteDialog(
+        title: "Modul löschen?",
+        message: "Möchtest du das Modul wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden.",
+        onConfirmed: (confirmed) {
+          ctx.pop(confirmed);
+          if(confirmed) {
+            _forceDeleteModule(module.id);
+          }
+        }
+      )
+    );
+  }
+
+  _forceDeleteModule(String moduleId) {
+    storageManager.deleteOneModule(moduleId).then((value){
       _navigateHome();
       Snackbars.message("Modul gelöscht", context);
       // Notify module list page that the module data has changed
@@ -469,8 +501,15 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                             answerRevealed: isRevealed,
                             indexCard: indexCard,
                             onEditPressed: (card) => _openCardEditor(_currentModuleId!, card),
-                            onDeletePressed: (card) => _removeCard(card),
+                            onDeletePressed: (card) {
+                              _removeCard(card).then((confirmed) {
+                                if(confirmed) {
+                                  _forceRemoveCard(card.id);
+                                }
+                              });
+                            },
                           ),
+                          confirmDismiss: (direction) => _removeCard(indexCard),
                         ),
                       );
                     },
