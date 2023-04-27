@@ -314,6 +314,8 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
     storageManager.deleteOneModule(module.id).then((value){
       _navigateHome();
       Snackbars.message("Modul gelöscht", context);
+      // Notify module list page that the module data has changed
+      Notifier.notify(NotifierName.notifierModuleList);
     }).onError((error, stackTrace){
       Snackbars.error("Ein Fehler ist aufgetreten", context);
     });
