@@ -135,18 +135,13 @@ class _ModuleListState extends State<ModuleListScreen> {
   Future<bool> _deleteModule(Module module) async {
     return await showDialog(
       context: context,
-      builder: (ctx) => ConfirmDeleteDialog(
+      builder: (ctx) => const ConfirmDeleteDialog(
         title: "Modul löschen?",
-        message: "Möchtest du das Modul wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden.",
-        onConfirmed: (confirmed) {
-          if(confirmed) {
-            ctx.pop(true);
-          } else {
-            ctx.pop(false);
-          }
-        },
+        message: "Möchtest du das Modul wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden."
       ),
-    );
+    ).then((value) {
+      return value ?? false;
+    });
   }
 
   _forceDeleteModule(String moduleId) {

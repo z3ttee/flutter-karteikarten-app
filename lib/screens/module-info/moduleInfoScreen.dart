@@ -247,17 +247,13 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   Future<bool> _removeCard(IndexCard card) async {
     return await showDialog(
       context: context, 
-      builder: (ctx) => ConfirmDeleteDialog(
+      builder: (ctx) => const ConfirmDeleteDialog(
         title: "Karteikarte löschen?",
-        message: "Möchtest du die Karteikarte wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden.", 
-        onConfirmed: (confirmed) {
-          ctx.pop(confirmed);
-          if(confirmed) {
-            _forceRemoveCard(card.id);
-          }
-        }
+        message: "Möchtest du die Karteikarte wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden."
       )
-    );
+    ).then((value) {
+      return value ?? false;
+    });
   }
   
   _forceRemoveCard(String cardId) {
@@ -330,17 +326,16 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
   _deleteModule(Module module) {
     showDialog(
       context: context,
-      builder: (ctx) => ConfirmDeleteDialog(
+      builder: (ctx) => const ConfirmDeleteDialog(
         title: "Modul löschen?",
-        message: "Möchtest du das Modul wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden.",
-        onConfirmed: (confirmed) {
-          ctx.pop(confirmed);
-          if(confirmed) {
-            _forceDeleteModule(module.id);
-          }
-        }
+        message: "Möchtest du das Modul wirklich löschen? Die Aktion kann nicht rückgängig gemacht werden."
       )
-    );
+    ).then((value) {
+      var confirmed = value ?? false;
+      if(confirmed) {
+        _forceDeleteModule(module.id);
+      }
+    });
   }
 
   _forceDeleteModule(String moduleId) {
@@ -496,7 +491,7 @@ class _ModuleInfoScreenState extends State<ModuleInfoScreen> {
                         child: Dismissible(
                           key: Key(indexCard.id),
                           direction: DismissDirection.endToStart,
-                          onDismissed: (direction) => _removeCard(indexCard),
+                          onDismissed: (direction) => _forceRemoveCard(indexCard.id),
                           background: const DismissToDeleteBackground(),
                           child: IndexCardItemCard(
                             answerRevealed: isRevealed,
