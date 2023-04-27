@@ -331,21 +331,48 @@ class _IterationScreenState extends State<IterationScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text("Schwierigkeit: ", style: Theme.of(context).textTheme.labelSmall,),
+                                    Chip(
+                                      label: SizedBox(
+                                        width: 100,
+                                        child: Center(
+                                          child: Text(snapshot.data!.cardWeight.name),
+                                        ),
+                                      ),
+                                      labelStyle: Theme.of(context).textTheme.labelSmall,
+                                    ),
+                                  ],
+                                ),
+                              ),
                               /// Card
                               SizedBox(
                                 height: 256,
                                 child: Card(
                                   child: Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Text(snapshot.data!.question),
-                                        !answerRevealed ? Container() : Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: Constants.listGap),
-                                          child: Text(snapshot.data!.answer),
-                                        )
-                                      ],
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: Constants.listGap),
+                                      child: ListView(
+                                        shrinkWrap: true,
+                                        children: [
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Text(snapshot.data!.question),
+                                              !answerRevealed ? Container() : Padding(
+                                                padding: const EdgeInsets.only(bottom: Constants.listGap),
+                                                child: Text(snapshot.data!.answer),
+                                              )
+                                            ],
+                                          )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
